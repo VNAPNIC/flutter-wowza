@@ -1,10 +1,37 @@
 part of gocoder;
 
-const _camera_view_channel = 'flutter_wowza_camera_view';
+const _camera_view_channel = 'flutter_wowza';
 
 enum BroadcastState { READY, BROADCASTING, IDLE }
 
-enum FrameSize {
+WOWZBroadcastStatus wowzBroadcastStatusFromJson(String str) =>
+    WOWZBroadcastStatus.fromJson(json.decode(str));
+
+String clientToJson(WOWZBroadcastStatus data) => json.encode(data.toJson());
+
+class WOWZBroadcastStatus {
+  BroadcastState state;
+  String message;
+
+  WOWZBroadcastStatus({
+    this.state,
+    this.message,
+  });
+
+  factory WOWZBroadcastStatus.fromJson(Map<String, dynamic> json) =>
+      WOWZBroadcastStatus(
+        state: BroadcastState.values.firstWhere(
+            (type) => type.toString() == "BroadcastState." + json["state"]),
+        message: json["message"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "state": state.toString(),
+        "message": message,
+      };
+}
+
+enum WOWZMediaConfig {
   FRAME_SIZE_176x144,
   FRAME_SIZE_320x240,
   FRAME_SIZE_352x288,
@@ -24,60 +51,8 @@ enum ScaleMode {
   FILL_VIEW
 }
 
-const _startPreview = "start_preview";
-const _stopPreview = "stop_preview";
-const _pausePreview = "pause_preview";
-const _continuePreview = "continue_preview";
-
-const _onPause = "on_pause";
-const _onResume = "on_resume";
-
-const _isSwitchCameraAvailable = "is_switch_camera_available";
-const _switchCamera = "switch_camera";
-
-class WOWZCameraController extends ValueNotifier<CameraControllerValue> {
-  MethodChannel _channel;
-
-  _setChannel(MethodChannel channel) {
-    _channel = channel;
-  }
-
-  WOWZCameraController() : super(CameraControllerValue(null));
-
-  /// Starts the camera preview display.
-  startPreview() {
-    value = CameraControllerValue(_startPreview);
-  }
-
-  /// Stops the camera preview display.
-  stopPreview() {
-    value = CameraControllerValue(_stopPreview);
-  }
-
-  pausePreview() {
-    value = CameraControllerValue(_pausePreview);
-  }
-
-  continuePreview() {
-    value = CameraControllerValue(_continuePreview);
-  }
-
-  onPause() {
-    value = CameraControllerValue(_onPause);
-  }
-
-  onResume() {
-    value = CameraControllerValue(_onResume);
-  }
-
-  switchCamera() {
-    value = CameraControllerValue(_switchCamera);
-  }
-
-  Future<bool> isSwitchCameraAvailable() async {
-    return await _channel?.invokeMethod(_isSwitchCameraAvailable);
-  }
-}
+typedef WOWZStatusCallback = Function(WOWZStatus);
+typedef WOWZBroadcastStatusCallback = Function(WOWZBroadcastStatus);
 
 class WOWZCameraView extends StatefulWidget {
   WOWZCameraView(
@@ -89,13 +64,19 @@ class WOWZCameraView extends StatefulWidget {
       @required this.streamName,
       this.username,
       this.password,
-      this.frameSize,
-      this.scaleMode = ScaleMode.RESIZE_TO_ASPECT});
+      this.wowzSize,
+      this.wowzMediaConfig,
+      this.scaleMode = ScaleMode.RESIZE_TO_ASPECT,
+      this.statusCallback,
+      this.broadcastStatusCallback});
 
   @override
   _WOWZCameraViewState createState() => _WOWZCameraViewState();
 
   final WOWZCameraController controller;
+
+  final WOWZStatusCallback statusCallback;
+  final WOWZBroadcastStatusCallback broadcastStatusCallback;
 
   final String apiLicenseKey;
 
@@ -109,7 +90,8 @@ class WOWZCameraView extends StatefulWidget {
   final String username;
   final String password;
 
-  final WOWZSize frameSize;
+  final WOWZSize wowzSize;
+  final WOWZMediaConfig wowzMediaConfig;
   final ScaleMode scaleMode;
 }
 
@@ -133,7 +115,15 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
           case _onPause:
           case _onResume:
           case _switchCamera:
-            _channel?.invokeMethod(widget.controller.value.event);
+          case _flashlight:
+          case _fps:
+          case _bps:
+          case _khz:
+          case _muted:
+          case _startBroadcast:
+          case _endBroadcast:
+            _channel?.invokeMethod(
+                widget.controller.value.event, widget.controller.value.value);
             break;
           default:
             break;
@@ -159,43 +149,54 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
   }
 
   _onPlatformViewCreated(int viewId) {
-    if (_viewId != viewId) {
+    if (_viewId != viewId || _channel == null) {
       _viewId = viewId;
-      _channel = null;
       _channel = MethodChannel("${_camera_view_channel}_$viewId");
       _channel.setMethodCallHandler((call) async {
+        print('wowz: status: ${call.arguments}');
         switch (call.method) {
-          case 'state':
-            _state(BroadcastState.values.firstWhere((type) =>
-                type.toString() == "BroadcastState." + call.arguments));
+          case _broadcastStatus:
+            widget.broadcastStatusCallback(
+                wowzBroadcastStatusFromJson(call.arguments));
             break;
-          case 'error':
+          case _broadcastError:
+            widget.broadcastStatusCallback(
+                wowzBroadcastStatusFromJson(call.arguments));
+            break;
+          case _wowzStatus:
+            widget.statusCallback(WOWZStatus(call.arguments));
+            break;
+          case _wowzError:
+            widget.statusCallback(WOWZStatus(call.arguments));
             break;
         }
       });
       widget.controller?._setChannel(_channel);
+
+      // license key gocoder sdk
+      _channel.invokeMethod(_apiLicenseKey, widget.apiLicenseKey);
+      // Set the connection properties for the target Wowza Streaming Engine server or Wowza Streaming Cloud live stream
+      _channel.invokeMethod(_hostAddress, widget.hostAddress);
+      _channel.invokeMethod(_portNumber, widget.portNumber);
+      _channel.invokeMethod(_applicationName, widget.applicationName);
+      _channel.invokeMethod(_streamName, widget.streamName);
+      //authentication
+      _channel.invokeMethod(_username, widget.username);
+      _channel.invokeMethod(_password, widget.password);
+
+      if (widget.wowzSize != null) {
+        _channel.invokeMethod(
+            _wowzSize, "${widget.wowzSize.width}/${widget.wowzSize.height}");
+      }
+      if (widget.wowzMediaConfig != null) {
+        _channel.invokeMethod(
+            _wowzMediaConfig, widget.wowzMediaConfig.toString());
+      }
+      if (widget.scaleMode != null) {
+        _channel.invokeMethod(_scaleMode, widget.scaleMode.toString());
+      }
     }
   }
-
-  void _state(BroadcastState values) {
-    switch (values) {
-      case BroadcastState.IDLE:
-        break;
-      case BroadcastState.READY:
-        break;
-      case BroadcastState.BROADCASTING:
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-@immutable
-class CameraControllerValue {
-  CameraControllerValue(this.event);
-
-  final String event;
 }
 
 @immutable
@@ -204,4 +205,72 @@ class WOWZSize {
 
   final int width;
   final int height;
+}
+
+@immutable
+// ignore: must_be_immutable
+class WOWZStatus {
+  int mState = 0;
+
+  WOWZStatus(this.mState);
+
+  bool isIdle() {
+    return this.mState == 0;
+  }
+
+  bool isStarting() {
+    return this.mState == 1;
+  }
+
+  bool isReady() {
+    return this.mState == 2;
+  }
+
+  bool isRunning() {
+    return this.mState == 3;
+  }
+
+  bool isPaused() {
+    return this.mState == 5;
+  }
+
+  bool isStopping() {
+    return this.mState == 4;
+  }
+
+  bool isStopped() {
+    return this.mState == 6;
+  }
+
+  bool isComplete() {
+    return this.mState == 7;
+  }
+
+  bool isShutdown() {
+    return this.mState == 9;
+  }
+
+  bool isUnknown() {
+    return this.mState == 11;
+  }
+
+  bool isBuffering() {
+    return this.mState == 12;
+  }
+
+  bool isPlayerBuffering() {
+    return this.mState == 24;
+  }
+
+  bool isPlayerIdle() {
+    return this.mState == 20;
+  }
+
+  bool isPlayerStopping() {
+    return this.mState == 23;
+  }
+
+  bool isPlayerRunning() {
+    return this.mState == 21;
+  }
 }
