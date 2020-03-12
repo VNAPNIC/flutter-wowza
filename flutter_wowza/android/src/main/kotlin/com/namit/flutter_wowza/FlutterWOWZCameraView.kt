@@ -106,15 +106,15 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
             "wowz_media_config" -> {
 
                 val frame = when (call.arguments.toString()) {
-                    "FRAME_SIZE_176x144" -> WOWZMediaConfig.FRAME_SIZE_176x144
-                    "FRAME_SIZE_320x240" -> WOWZMediaConfig.FRAME_SIZE_320x240
-                    "FRAME_SIZE_352x288" -> WOWZMediaConfig.FRAME_SIZE_352x288
-                    "FRAME_SIZE_640x480" -> WOWZMediaConfig.FRAME_SIZE_640x480
-                    "FRAME_SIZE_960x540" -> WOWZMediaConfig.FRAME_SIZE_960x540
-                    "FRAME_SIZE_1280x720" -> WOWZMediaConfig.FRAME_SIZE_1280x720
-                    "FRAME_SIZE_1440x1080" -> WOWZMediaConfig.FRAME_SIZE_1440x1080
-                    "FRAME_SIZE_1920x1080" -> WOWZMediaConfig.FRAME_SIZE_1920x1080
-                    "FRAME_SIZE_3840x2160" -> WOWZMediaConfig.FRAME_SIZE_3840x2160
+                    "WOWZMediaConfig.FRAME_SIZE_176x144" -> WOWZMediaConfig.FRAME_SIZE_176x144
+                    "WOWZMediaConfig.FRAME_SIZE_320x240" -> WOWZMediaConfig.FRAME_SIZE_320x240
+                    "WOWZMediaConfig.FRAME_SIZE_352x288" -> WOWZMediaConfig.FRAME_SIZE_352x288
+                    "WOWZMediaConfig.FRAME_SIZE_640x480" -> WOWZMediaConfig.FRAME_SIZE_640x480
+                    "WOWZMediaConfig.FRAME_SIZE_960x540" -> WOWZMediaConfig.FRAME_SIZE_960x540
+                    "WOWZMediaConfig.FRAME_SIZE_1280x720" -> WOWZMediaConfig.FRAME_SIZE_1280x720
+                    "WOWZMediaConfig.FRAME_SIZE_1440x1080" -> WOWZMediaConfig.FRAME_SIZE_1440x1080
+                    "WOWZMediaConfig.FRAME_SIZE_1920x1080" -> WOWZMediaConfig.FRAME_SIZE_1920x1080
+                    "WOWZMediaConfig.FRAME_SIZE_3840x2160" -> WOWZMediaConfig.FRAME_SIZE_3840x2160
                     else -> WOWZMediaConfig.FRAME_SIZE_640x480
                 }
                 goCoderBroadcastConfig?.set(frame)
@@ -122,7 +122,7 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
 
             "scale_mode" -> {
                 val scale = when (call.arguments.toString()) {
-                    "FILL_VIEW" -> WOWZMediaConfig.FILL_VIEW
+                    "ScaleMode.FILL_VIEW" -> WOWZMediaConfig.FILL_VIEW
                     else -> WOWZMediaConfig.RESIZE_TO_ASPECT
                 }
 
