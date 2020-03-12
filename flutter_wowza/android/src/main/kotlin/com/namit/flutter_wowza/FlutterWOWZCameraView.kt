@@ -85,7 +85,7 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
         when (call.method) {
             "api_licenseKey" -> goCoder = WowzaGoCoder.init(context, call.arguments.toString())
 
-            "_host_address" -> goCoderBroadcastConfig?.hostAddress = call.arguments.toString()
+            "host_address" -> goCoderBroadcastConfig?.hostAddress = call.arguments.toString()
 
             "port_number" -> goCoderBroadcastConfig?.portNumber = call.arguments.toString().toInt()
 
@@ -103,7 +103,7 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
                     goCoderCameraView.frameSize = WOWZSize(wowzSize[0].trim().toInt(), wowzSize[1].trim().toInt())
             }
 
-            "_wowz_media_config" -> {
+            "wowz_media_config" -> {
 
                 val frame = when (call.arguments.toString()) {
                     "FRAME_SIZE_176x144" -> WOWZMediaConfig.FRAME_SIZE_176x144
