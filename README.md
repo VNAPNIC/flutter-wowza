@@ -1,6 +1,7 @@
 # flutter-wowza
 
 Wowza GoCoderSDK plugin for Flutter Android/IOS
+
 The project is based on [Wowza GoCoder SDK](https://www.wowza.com/docs/wowza-gocoder-sdk)
 
 Learn more about using GoCoder here
