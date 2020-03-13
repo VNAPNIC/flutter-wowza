@@ -71,7 +71,7 @@ class WOWZCameraView extends StatefulWidget {
       this.password,
       this.wowzSize,
       this.wowzMediaConfig,
-      this.scaleMode = ScaleMode.RESIZE_TO_ASPECT,
+      this.scaleMode = ScaleMode.RESIZE_TO_ASPECT, this.fps, this.bps, this.khz,
       this.statusCallback,
       this.broadcastStatusCallback});
 
@@ -98,6 +98,10 @@ class WOWZCameraView extends StatefulWidget {
   final WOWZSize wowzSize;
   final WOWZMediaConfig wowzMediaConfig;
   final ScaleMode scaleMode;
+
+  final int fps;
+  final int bps;
+  final int khz;
 }
 
 class _WOWZCameraViewState extends State<WOWZCameraView> {
@@ -111,6 +115,20 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
       if (widget.controller != null && widget.controller.value != null) {
         print('controller event: ${widget.controller.value.event}');
         switch (widget.controller.value.event) {
+          case _flashlight:
+            if(defaultTargetPlatform == TargetPlatform.android)
+              _channel?.invokeMethod(
+                  widget.controller.value.event, widget.controller.value.value);
+            else
+              _channel?.invokeMethod(widget.controller.value.value?_flashlightOn:_flashlightOff);
+            break;
+          case _muted:
+            if(defaultTargetPlatform == TargetPlatform.android)
+              _channel?.invokeMethod(
+                  widget.controller.value.event, widget.controller.value.value);
+            else
+              _channel?.invokeMethod(widget.controller.value.value?_mutedOn:_mutedOff);
+            break;
           case _startPreview:
           case _startPreview:
           case _stopPreview:
@@ -120,11 +138,9 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
           case _onPause:
           case _onResume:
           case _switchCamera:
-          case _flashlight:
           case _fps:
           case _bps:
           case _khz:
-          case _muted:
           case _startBroadcast:
           case _endBroadcast:
             _channel?.invokeMethod(
@@ -153,7 +169,7 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
                 '$defaultTargetPlatform is not yet supported by the text_view plugin');
   }
 
-  _onPlatformViewCreated(int viewId) {
+  _onPlatformViewCreated(int viewId){
     if (_viewId != viewId || _channel == null) {
       _viewId = viewId;
       _channel = MethodChannel("${_camera_view_channel}_$viewId");
@@ -179,7 +195,7 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
       widget.controller?._setChannel(_channel);
 
       // license key gocoder sdk
-      _channel.invokeMethod(_apiLicenseKey, widget.apiLicenseKey);
+        _channel.invokeMethod(_apiLicenseKey, widget.apiLicenseKey);
       // Set the connection properties for the target Wowza Streaming Engine server or Wowza Streaming Cloud live stream
       _channel.invokeMethod(_hostAddress, widget.hostAddress);
       _channel.invokeMethod(_portNumber, widget.portNumber);
@@ -190,16 +206,30 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
       _channel.invokeMethod(_password, widget.password);
 
       if (widget.wowzSize != null) {
-        _channel.invokeMethod(
+           _channel.invokeMethod(
             _wowzSize, "${widget.wowzSize.width}/${widget.wowzSize.height}");
       }
       if (widget.wowzMediaConfig != null) {
-        _channel.invokeMethod(
+           _channel.invokeMethod(
             _wowzMediaConfig, widget.wowzMediaConfig.toString());
       }
       if (widget.scaleMode != null) {
-        _channel.invokeMethod(_scaleMode, widget.scaleMode.toString());
+          _channel.invokeMethod(_scaleMode, widget.scaleMode.toString());
       }
+
+      if(widget.fps!=null){
+        _channel.invokeListMethod(_fps,widget.fps);
+      }
+
+      if(widget.bps !=null){
+        _channel.invokeListMethod(_bps,widget.bps);
+      }
+
+      if(widget.khz !=null){
+        _channel.invokeListMethod(_bps,widget.bps);
+      }
+
+      _channel.invokeListMethod(_initGoCoder);
     }
   }
 }
