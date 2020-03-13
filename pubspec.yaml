@@ -1,7 +1,7 @@
 name: flutter_wowza
 description: Flutter WOWZA plugin for iOS/Android.
 homepage: https://github.com/VNAPNIC/flutter-wowza
-version: 0.1.0
+version: 0.1.1
 author: vn.apnic@gmail.com
 
 environment:
