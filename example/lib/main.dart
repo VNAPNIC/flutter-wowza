@@ -35,15 +35,15 @@ class _MyAppState extends State<MyApp> {
                 width: 1280,
                 child: WOWZCameraView(
                   apiLicenseKey: (defaultTargetPlatform == TargetPlatform.android)
-                      ? "GOSK-9C47-010C-2895-D225-9FEF"
-                  : "GOSK-9C47-010C-A9B9-EB78-3FBD",
+                      ? "GOSK-xxxx-xxxx-xxxx-xxxx-xxxx"
+                  : "GOSK-xxxx-xxxx-xxxx-xxxx-xxxx",
                   controller: controller,
-                  hostAddress: "10.64.100.47",
+                  hostAddress: "xxx.xxx.xxx.xxx",
                   portNumber: 1935,
-                  applicationName: "liveshopmb",
-                  streamName: "myStream",
-                  username: "anhpt",
-                  password: "123456",
+                  applicationName: "xxxxxx",
+                  streamName: "xxxxx",
+                  username: "xxxx",
+                  password: "xxxx",
                   scaleMode: ScaleMode.FILL_VIEW,
                   statusCallback: (status) {
                     print(

@@ -81,7 +81,7 @@ public class FlutterWOWZCameraView : NSObject, FlutterPlatformView,WOWZBroadcast
                     print("IOS cannot support 176x144")
                     break
                 case "WOWZMediaConfig.FRAME_SIZE_320x240":
-                    print("IOS cannot support 176x144")
+                    print("IOS cannot support 320x240")
                     break
                 case "WOWZMediaConfig.FRAME_SIZE_352x288":
                     self.goCoderConfig.load(WOWZFrameSizePreset.preset352x288)
