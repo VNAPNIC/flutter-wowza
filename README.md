@@ -1,4 +1,4 @@
-# flutter-wowza
+# flutter_wowza
 
 The project is based on [Wowza GoCoder SDK](https://www.wowza.com/docs/wowza-gocoder-sdk)
 
