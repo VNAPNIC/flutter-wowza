@@ -34,12 +34,12 @@ class _MyAppState extends State<MyApp> {
                 child: WOWZCameraView(
                   apiLicenseKey: "GOSK-9C47-010C-2895-D225-9FEF",
                   controller: controller,
-                  hostAddress: "20ae97.entrypoint.cloud.wowza.com",
+                  hostAddress: "10.64.100.47",
                   portNumber: 1935,
-                  applicationName: "app-9887",
-                  streamName: "eea812c0",
-                  username: "client49777",
-                  password: "59afa4d1",
+                  applicationName: "liveshopmb",
+                  streamName: "myStream",
+                  username: "anhpt",
+                  password: "123456",
                   scaleMode: ScaleMode.FILL_VIEW,
                   statusCallback: (status) {
                     print(

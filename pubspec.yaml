@@ -1,0 +1,22 @@
+name: flutter_wowza
+description: Wowza GoCoder SDK plugin for Flutter Android&#x2F;IOS
+homepage: https://github.com/VNAPNIC/flutter-wowza
+version: 0.1.0
+author: vnapnic
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+  flutter: ">=1.10.0 <2.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    androidPackage: com.namit.flutter_wowza
+    pluginClass: FlutterWowzaPlugin

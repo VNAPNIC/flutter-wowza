@@ -54,6 +54,11 @@ enum ScaleMode {
 typedef WOWZStatusCallback = Function(WOWZStatus);
 typedef WOWZBroadcastStatusCallback = Function(WOWZBroadcastStatus);
 
+abstract class OnWOWZBroadcastStatusCallback{
+  void onWZStatus(WOWZBroadcastStatus status);
+  void onWZError(WOWZBroadcastStatus status);
+}
+
 class WOWZCameraView extends StatefulWidget {
   WOWZCameraView(
       {@required this.controller,
