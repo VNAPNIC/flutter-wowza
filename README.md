@@ -7,6 +7,8 @@ Learn more about using GoCoder here
 [Android](https://www.wowza.com/docs/how-to-build-a-basic-app-with-gocoder-sdk-for-android) | 
 [IOS](https://www.wowza.com/docs/how-to-build-a-basic-app-with-gocoder-sdk-for-ios)
 
+<img src="https://github.com/VNAPNIC/flutter-wowza/blob/master/resouces/mobile.jpg" data-canonical-src="https://github.com/VNAPNIC/flutter-wowza/blob/master/resouces/mobile.jpg" width="400" />
+
 ## Usage
 Add `flutter-wowza` as a [dependency in your pubspec.yaml file](https://flutter.io/using-packages/).
 
@@ -46,6 +48,38 @@ Ensure the following permission is present in your Android Manifest file, locate
 <uses-feature android:name="android.hardware.microphone" android:required="false" />
 <uses-feature android:glEsVersion="0x00020000" android:required="true" />
 ```
+## Example
+
+```dart
+WOWZCameraView(
+   apiLicenseKey: (defaultTargetPlatform == TargetPlatform.android)
+   ? "GOSK-xxxx-xxxx-xxxx-xxxx-xxxx"
+   : "GOSK-xxxx-xxxx-xxxx-xxxx-xxxx",
+   controller: controller,
+   hostAddress: "xxx.xxx.xxx.xxx",
+   portNumber: 1935,
+   applicationName: "xxxxxx",
+   streamName: "xxxxx",
+   username: "xxxx",
+   password: "xxxx",
+   scaleMode: ScaleMode.FILL_VIEW,
+   statusCallback: (status) {
+      print(
+            "status: ${status.mState} | ${status.isStarting()} | ${status.isReady()}");
+   },
+   broadcastStatusCallback: (broadcastStatus) {
+       print(
+             "status: ${broadcastStatus.state.toString()} | ${broadcastStatus.message}");
+   },
+)
+```
+
+Control live streams
+
+```dart
+WOWZCameraController controller = WOWZCameraController();
+```
+
 
 ## Functionality supported
 
