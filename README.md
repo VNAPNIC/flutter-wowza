@@ -7,6 +7,8 @@ Learn more about using GoCoder here
 [Android](https://www.wowza.com/docs/how-to-build-a-basic-app-with-gocoder-sdk-for-android) | 
 [IOS](https://www.wowza.com/docs/how-to-build-a-basic-app-with-gocoder-sdk-for-ios)
 
+<img src="https://github.com/VNAPNIC/flutter-wowza/blob/master/resouces/mobile.jpg" data-canonical-src="https://github.com/VNAPNIC/flutter-wowza/blob/master/resouces/mobile.jpg" width="400" />
+
 ## Usage
 Add `flutter-wowza` as a [dependency in your pubspec.yaml file](https://flutter.io/using-packages/).
 
