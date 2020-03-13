@@ -41,5 +41,18 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+    
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <false/>
+    <key>NSCameraUsageDescription</key>
+    <string>The camera will be used to capture video for live streaming</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>The microphone will be used to capture live audio for streaming</string>
+    <key>UIRequiredDeviceCapabilities</key>
+    <array>
+    <string>armv7</string>
+    </array>
+    <key>io.flutter.embedded_views_preview</key>
+    <true/>
 </dict>
 </plist>

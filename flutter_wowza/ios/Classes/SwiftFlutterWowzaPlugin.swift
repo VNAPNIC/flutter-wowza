@@ -3,12 +3,9 @@ import UIKit
 
 public class SwiftFlutterWowzaPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "flutter_wowza", binaryMessenger: registrar.messenger())
-    let instance = SwiftFlutterWowzaPlugin()
-    registrar.addMethodCallDelegate(instance, channel: channel)
-  }
-
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    result("iOS " + UIDevice.current.systemVersion)
+     let controller =
+           (UIApplication.shared.delegate?.window??.rootViewController) as! FlutterViewController;
+           let factory = WOWZCameraViewFactory(messenger: registrar.messenger(),controller:controller)
+           registrar.register(factory, withId: "flutter_wowza")
   }
 }

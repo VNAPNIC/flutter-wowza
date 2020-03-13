@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_wowza/gocoder/wowza_gocoder.dart';
 
 void main() => runApp(MyApp());
@@ -32,7 +34,9 @@ class _MyAppState extends State<MyApp> {
                 height: 720,
                 width: 1280,
                 child: WOWZCameraView(
-                  apiLicenseKey: "GOSK-9C47-010C-2895-D225-9FEF",
+                  apiLicenseKey: (defaultTargetPlatform == TargetPlatform.android)
+                      ? "GOSK-9C47-010C-2895-D225-9FEF"
+                  : "GOSK-9C47-010C-A9B9-EB78-3FBD",
                   controller: controller,
                   hostAddress: "20ae97.entrypoint.cloud.wowza.com",
                   portNumber: 1935,
