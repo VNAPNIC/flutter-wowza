@@ -1,7 +1,5 @@
 # flutter-wowza
 
-Flutter WOWZA plugin for iOS/Android.
-
 The project is based on [Wowza GoCoder SDK](https://www.wowza.com/docs/wowza-gocoder-sdk)
 
 Learn more about using GoCoder here
