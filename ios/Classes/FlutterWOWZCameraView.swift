@@ -133,11 +133,11 @@ public class FlutterWOWZCameraView : NSObject, FlutterPlatformView,WOWZBroadcast
                             self.goCoder = goCoder
                             print("gocoder is init!")
                             WowzaGoCoder.requestPermission(for: .camera, response: { (permission) in
-                            print("Camera permission is: \(permission == .authorized ? "authorized" : "denied")")
+                                print("Camera permission is: \(permission == .authorized ? "authorized" : "denied")")
                             })
 
                             WowzaGoCoder.requestPermission(for: .microphone, response: { (permission) in
-                            print("Microphone permission is: \(permission == .authorized ? "authorized" : "denied")")
+                                print("Microphone permission is: \(permission == .authorized ? "authorized" : "denied")")
                             })
                             self.goCoder?.config = self.goCoderConfig
                             self.goCoder?.cameraView = self.uiView
@@ -146,11 +146,11 @@ public class FlutterWOWZCameraView : NSObject, FlutterPlatformView,WOWZBroadcast
                 break
             case "start_preview":
                 WowzaGoCoder.requestPermission(for: .camera, response: { (permission) in
-                print("Camera permission is: \(permission == .authorized ? "authorized" : "denied")")
+                    print("Camera permission is: \(permission == .authorized ? "authorized" : "denied")")
                 })
 
                 WowzaGoCoder.requestPermission(for: .microphone, response: { (permission) in
-                print("Microphone permission is: \(permission == .authorized ? "authorized" : "denied")")
+                    print("Microphone permission is: \(permission == .authorized ? "authorized" : "denied")")
                 })
                 self.cameraView?.start()
                 break;

@@ -30,15 +30,14 @@ import io.flutter.plugin.platform.PlatformView
 class FlutterWOWZCameraView internal
 constructor(private val context: Context?, private val registrar: PluginRegistry.Registrar,
             private val methodChannel: MethodChannel, id: Int?, params: Map<String, Any>?) :
-        PlatformView, MethodChannel.MethodCallHandler, WOWZBroadcastStatusCallback, WOWZStatusCallback, PluginRegistry.RequestPermissionsResultListener {
-
-    //define callback interface
-    interface PermissionCallbackInterface {
-        fun onPermissionResult(result: Boolean)
-    }
+        PlatformView, MethodChannel.MethodCallHandler,
+        WOWZBroadcastStatusCallback, WOWZStatusCallback,
+        PluginRegistry.RequestPermissionsResultListener {
 
     private var mPermissionsGranted = false
     private var hasRequestedPermissions = false
+    var videoIsInitialized = false
+    var audioIsInitialized = false
 
     private val PERMISSIONS_REQUEST_CODE = 0x1
 
@@ -48,8 +47,6 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
 //            Manifest.permission.WRITE_EXTERNAL_STORAGE,
 //            Manifest.permission.READ_PHONE_STATE
     )
-
-    private var callbackFunction: PermissionCallbackInterface? = null
 
     private val goCoderCameraView: WOWZCameraView = WOWZCameraView(context)
     // The top-level GoCoder API interface
@@ -62,6 +59,8 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
     private var goCoderBroadcastConfig: WOWZBroadcastConfig? = null
 
     init {
+        registrar.addRequestPermissionsResultListener(this)
+
         methodChannel.setMethodCallHandler(this)
         // Create a broadcaster instance
         goCoderBroadcaster = WOWZBroadcast()
@@ -129,51 +128,18 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
                 goCoderCameraView.scaleMode = scale
             }
 
+            "init_go_coder" -> {
+                if (requestPermissionToAccess())
+                    onPermissionResult(true)
+            }
             "start_preview" -> {
-                if (goCoder != null) {
-                    var videoIsInitialized = false
-                    var audioIsInitialized = false
-                    this.hasDevicePermissionToAccess(object : PermissionCallbackInterface {
-                        override fun onPermissionResult(result: Boolean) {
-
-                            Log.i("FlutterWOWZCameraView", "onPermissionResult $result")
-
-                            if (result) {
-                                // Initialize the camera preview
-                                if (hasDevicePermissionToAccess(Manifest.permission.CAMERA)) {
-                                    val availableCameras = goCoderCameraView.cameras
-                                    // Ensure we can access to at least one camera
-                                    if (availableCameras.isNotEmpty()) {
-                                        // Set the video broadcaster in the broadcast config
-                                        goCoderBroadcastConfig?.videoBroadcaster = goCoderCameraView
-                                        videoIsInitialized = true
-                                        Log.i("FlutterWOWZCameraView", "*** getOriginalFrameSizes - Get original frame size : ")
-                                    } else {
-                                        Log.i("FlutterWOWZCameraView", "Could not detect or gain access to any cameras on this device")
-                                        goCoderBroadcastConfig?.isVideoEnabled = false
-                                    }
-                                }
-
-                                if (hasDevicePermissionToAccess(Manifest.permission.RECORD_AUDIO)) {
-                                    // Create an audio device instance for capturing and broadcasting audio
-                                    goCoderAudioDevice = WOWZAudioDevice()
-                                    // Set the audio broadcaster in the broadcast config
-                                    goCoderBroadcastConfig?.audioBroadcaster = goCoderAudioDevice
-                                    audioIsInitialized = true
-                                }
-
-                                if (videoIsInitialized && audioIsInitialized) {
-                                    Log.i("FlutterWOWZCameraView", "startPreview")
-                                    if (!goCoderCameraView.isPreviewing)
-                                        goCoderCameraView.startPreview()
-                                }
-                            }
-                        }
-                    })
-
+                if (requestPermissionToAccess()) {
+                    if (videoIsInitialized && audioIsInitialized && !goCoderCameraView.isPreviewing )
+                        goCoderCameraView.startPreview()
+                    else
+                        onPermissionResult(true)
                 }
             }
-
             "pause_preview" -> activeCamera?.pausePreview()
 
             "continue_preview" -> activeCamera.continuePreview()
@@ -254,29 +220,37 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
         }
     }
 
-    private fun hasDevicePermissionToAccess(callback: PermissionCallbackInterface) {
-        this.callbackFunction = callback
-        var result = false
+    private fun requestPermissionToAccess(): Boolean {
+        var result = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            result = if (mRequiredPermissions.isNotEmpty()) checkPermissionToAccess(mRequiredPermissions) else true
 
-        if (goCoderBroadcaster != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                result = if (mRequiredPermissions.isNotEmpty()) hasDevicePermissionToAccess(mRequiredPermissions) else true
-
-                if (!result && !hasRequestedPermissions) {
-                    ActivityCompat.requestPermissions(registrar.activity(),
-                            mRequiredPermissions,
-                            PERMISSIONS_REQUEST_CODE)
-                    hasRequestedPermissions = true
-                }
+            if (!result && !hasRequestedPermissions) {
+                ActivityCompat.requestPermissions(registrar.activity(),
+                        mRequiredPermissions,
+                        PERMISSIONS_REQUEST_CODE)
+                hasRequestedPermissions = true
             }
         }
-
-        this.callbackFunction?.onPermissionResult(result)
+        return result
     }
 
-    private fun hasDevicePermissionToAccess(permissions: Array<String>): Boolean {
+    private fun requestPermissionToAccess(source: String): Boolean {
         var result = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            result = if (mRequiredPermissions.isNotEmpty()) checkPermissionToAccess(source) else true
+            if (!result && !hasRequestedPermissions) {
+                ActivityCompat.requestPermissions(registrar.activity(),
+                        mRequiredPermissions,
+                        PERMISSIONS_REQUEST_CODE)
+                hasRequestedPermissions = true
+            }
+        }
+        return result
+    }
 
+    private fun checkPermissionToAccess(permissions: Array<String>): Boolean {
+        var result = true
         if (goCoderBroadcaster != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 for (permission in permissions) {
@@ -285,19 +259,23 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
                     }
                 }
             }
+        } else {
+            Log.e("FlutterWOWZCameraView", "goCoderBroadcaster is null!")
+            result = false
         }
-
-        Log.i("FlutterWOWZCameraView", "hasDevicePermissionToAccess $result")
         return result
     }
 
-    private fun hasDevicePermissionToAccess(source: String): Boolean {
+    private fun checkPermissionToAccess(source: String): Boolean {
         if (goCoderBroadcaster != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (ContextCompat.checkSelfPermission(registrar.activity(), source) == PackageManager.PERMISSION_DENIED) {
                     return false
                 }
             }
+        } else {
+            Log.e("FlutterWOWZCameraView", "goCoderBroadcaster is null!")
+            return false
         }
         return true
     }
@@ -312,9 +290,56 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
                     }
                 }
                 hasRequestedPermissions = false
+                onPermissionResult(mPermissionsGranted)
             }
         }
-        this.callbackFunction?.onPermissionResult(mPermissionsGranted)
+
+        Log.i("FlutterWOWZCameraView", "onRequestPermissionsResult  has requested: $hasRequestedPermissions")
         return true
+    }
+
+    private fun onPermissionResult(mPermissionsGranted: Boolean) {
+        if (goCoder != null) {
+            if (mPermissionsGranted) {
+                // Initialize the camera preview
+                if (requestPermissionToAccess(Manifest.permission.CAMERA)) {
+                    if(!videoIsInitialized) {
+                        val availableCameras = goCoderCameraView.cameras
+                        // Ensure we can access to at least one camera
+                        if (availableCameras.isNotEmpty()) {
+                            // Set the video broadcaster in the broadcast config
+                            goCoderBroadcastConfig?.videoBroadcaster = goCoderCameraView
+                            videoIsInitialized = true
+                            Log.i("FlutterWOWZCameraView", "*** getOriginalFrameSizes - Get original frame size : ")
+                        } else {
+                            Log.e("FlutterWOWZCameraView", "Could not detect or gain access to any cameras on this device")
+                            goCoderBroadcastConfig?.isVideoEnabled = false
+                        }
+                    }
+                } else {
+                    Log.e("FlutterWOWZCameraView", "Exception Fail to connect to camera service. I checked camera permission in Settings")
+                }
+
+                if (requestPermissionToAccess(Manifest.permission.RECORD_AUDIO)) {
+                    if(!audioIsInitialized) {
+                        // Create an audio device instance for capturing and broadcasting audio
+                        goCoderAudioDevice = WOWZAudioDevice()
+                        // Set the audio broadcaster in the broadcast config
+                        goCoderBroadcastConfig?.audioBroadcaster = goCoderAudioDevice
+                        audioIsInitialized = true
+                    }
+                } else {
+                    Log.e("FlutterWOWZCameraView", "Exception Fail to connect to record audio service. I checked camera permission in Settings")
+                }
+
+                if (videoIsInitialized && audioIsInitialized) {
+                    Log.i("FlutterWOWZCameraView", "startPreview")
+                    if (!goCoderCameraView.isPreviewing)
+                        goCoderCameraView.startPreview()
+                }
+            }
+        } else {
+            Log.e("FlutterWOWZCameraView", "goCoder is null!, Please check the license key GoCoder SDK, maybe your license key GoCoder SDK is wrong!")
+        }
     }
 }

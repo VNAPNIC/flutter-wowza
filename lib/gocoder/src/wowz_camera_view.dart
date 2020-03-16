@@ -195,12 +195,20 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
       widget.controller?._setChannel(_channel);
 
       // license key gocoder sdk
-        _channel.invokeMethod(_apiLicenseKey, widget.apiLicenseKey);
+      _channel.invokeMethod(_apiLicenseKey, widget.apiLicenseKey);
       // Set the connection properties for the target Wowza Streaming Engine server or Wowza Streaming Cloud live stream
-      _channel.invokeMethod(_hostAddress, widget.hostAddress);
-      _channel.invokeMethod(_portNumber, widget.portNumber);
-      _channel.invokeMethod(_applicationName, widget.applicationName);
-      _channel.invokeMethod(_streamName, widget.streamName);
+      if (widget.hostAddress != null  && widget.hostAddress.isNotEmpty) {
+        _channel.invokeMethod(_hostAddress, widget.hostAddress);
+      }
+      if (widget.portNumber != null) {
+        _channel.invokeMethod(_portNumber, widget.portNumber);
+      }
+      if (widget.applicationName != null  && widget.applicationName.isNotEmpty) {
+        _channel.invokeMethod(_applicationName, widget.applicationName);
+      }
+      if (widget.streamName != null  && widget.streamName.isNotEmpty) {
+        _channel.invokeMethod(_streamName, widget.streamName);
+      }
       //authentication
       if (widget.username != null) {
         _channel.invokeMethod(_username, widget.username);
@@ -219,15 +227,12 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
       if (widget.scaleMode != null) {
           _channel.invokeMethod(_scaleMode, widget.scaleMode.toString());
       }
-
       if(widget.fps!=null){
         _channel.invokeListMethod(_fps,widget.fps);
       }
-
       if(widget.bps !=null){
         _channel.invokeListMethod(_bps,widget.bps);
       }
-
       if(widget.khz !=null){
         _channel.invokeListMethod(_bps,widget.bps);
       }

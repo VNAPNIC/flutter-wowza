@@ -35,8 +35,8 @@ class _MyAppState extends State<MyApp> {
                 width: 1280,
                 child: WOWZCameraView(
                   apiLicenseKey: (defaultTargetPlatform == TargetPlatform.android)
-                      ? "GOSK-xxxx-xxxx-xxxx-xxxx-xxxx"
-                  : "GOSK-xxxx-xxxx-xxxx-xxxx-xxxx",
+                      ? "GOSK-9C47-010C-2895-D225-9FEF"
+                      : "GOSK-9C47-010C-A9B9-EB78-3FBD",
                   controller: controller,
                   hostAddress: "xxx.xxx.xxx.xxx",
                   portNumber: 1935,

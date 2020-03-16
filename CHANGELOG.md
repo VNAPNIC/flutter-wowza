@@ -1,3 +1,7 @@
+## 0.1.5
+
+* fix Android permission not working
+
 ## 0.1.4
 
 * fix userName vs Password is null object reference
