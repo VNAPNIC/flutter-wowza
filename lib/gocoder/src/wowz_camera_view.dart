@@ -202,9 +202,12 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
       _channel.invokeMethod(_applicationName, widget.applicationName);
       _channel.invokeMethod(_streamName, widget.streamName);
       //authentication
-      _channel.invokeMethod(_username, widget.username);
-      _channel.invokeMethod(_password, widget.password);
-
+      if (widget.username != null) {
+        _channel.invokeMethod(_username, widget.username);
+      }
+      if (widget.password != null) {
+        _channel.invokeMethod(_password, widget.password);
+      }
       if (widget.wowzSize != null) {
            _channel.invokeMethod(
             _wowzSize, "${widget.wowzSize.width}/${widget.wowzSize.height}");
