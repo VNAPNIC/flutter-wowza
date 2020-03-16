@@ -1,3 +1,9 @@
+## 0.1.7
+
+* I split 2 license key for 2 platforms for easy management
+* androidLicenseKey and iosLicenseKey
+* change example readme.md
+
 ## 0.1.6
 
 * No configuration required WOWZA when constructing WOWZCameraView
