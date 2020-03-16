@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_wowza/gocoder/wowza_gocoder.dart';
 
@@ -18,6 +19,16 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      controller.setWOWZConfig(
+          hostAddress: "xxx.xxx.xxx.xxx",
+          portNumber: 1935,
+          applicationName: "xxxxxx",
+          streamName: "xxxxx",
+          username: "xxxx",
+          password: "xxxx",
+          scaleMode: ScaleMode.FILL_VIEW);
+    });
   }
 
   @override
@@ -34,17 +45,11 @@ class _MyAppState extends State<MyApp> {
                 height: 720,
                 width: 1280,
                 child: WOWZCameraView(
-                  apiLicenseKey: (defaultTargetPlatform == TargetPlatform.android)
-                      ? "GOSK-9C47-010C-2895-D225-9FEF"
-                      : "GOSK-9C47-010C-A9B9-EB78-3FBD",
+                  apiLicenseKey:
+                      (defaultTargetPlatform == TargetPlatform.android)
+                          ? "GOSK-9C47-010C-2895-D225-9FEF"
+                          : "GOSK-9C47-010C-A9B9-EB78-3FBD",
                   controller: controller,
-                  hostAddress: "xxx.xxx.xxx.xxx",
-                  portNumber: 1935,
-                  applicationName: "xxxxxx",
-                  streamName: "xxxxx",
-                  username: "xxxx",
-                  password: "xxxx",
-                  scaleMode: ScaleMode.FILL_VIEW,
                   statusCallback: (status) {
                     print(
                         "status: ${status.mState} | ${status.isStarting()} | ${status.isReady()}");

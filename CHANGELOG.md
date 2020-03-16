@@ -1,3 +1,7 @@
+## 0.1.6
+
+* No configuration required WOWZA when constructing WOWZCameraView
+
 ## 0.1.5
 
 * fix Android permission not working
