@@ -63,7 +63,8 @@ abstract class OnWOWZBroadcastStatusCallback {
 class WOWZCameraView extends StatefulWidget {
   WOWZCameraView(
       {@required this.controller,
-      @required this.apiLicenseKey,
+      @required this.androidLicenseKey,
+      @required this.iosLicenseKey,
       this.statusCallback,
       this.broadcastStatusCallback});
 
@@ -75,7 +76,8 @@ class WOWZCameraView extends StatefulWidget {
   final WOWZStatusCallback statusCallback;
   final WOWZBroadcastStatusCallback broadcastStatusCallback;
 
-  final String apiLicenseKey;
+  final String androidLicenseKey;
+  final String iosLicenseKey;
 }
 
 class _WOWZCameraViewState extends State<WOWZCameraView> {
@@ -173,7 +175,11 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
         }
       });
       // license key gocoder sdk
-      _channel.invokeMethod(_apiLicenseKey, widget.apiLicenseKey);
+      _channel.invokeMethod(
+          _apiLicenseKey,
+          (defaultTargetPlatform == TargetPlatform.android)
+              ? widget.androidLicenseKey
+              : widget.iosLicenseKey);
 
       if (widget.controller.configIsWaiting) {
         widget.controller.resetConfig();

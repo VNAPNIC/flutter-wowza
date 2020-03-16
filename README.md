@@ -51,25 +51,15 @@ Ensure the following permission is present in your Android Manifest file, locate
 
 ```dart
 WOWZCameraView(
-   apiLicenseKey: (defaultTargetPlatform == TargetPlatform.android)
-   ? "GOSK-xxxx-xxxx-xxxx-xxxx-xxxx"
-   : "GOSK-xxxx-xxxx-xxxx-xxxx-xxxx",
-   controller: controller,
-   hostAddress: "xxx.xxx.xxx.xxx",
-   portNumber: 1935,
-   applicationName: "xxxxxx",
-   streamName: "xxxxx",
-   username: "xxxx",
-   password: "xxxx",
-   scaleMode: ScaleMode.FILL_VIEW,
-   statusCallback: (status) {
-      print(
-            "status: ${status.mState} | ${status.isStarting()} | ${status.isReady()}");
-   },
-   broadcastStatusCallback: (broadcastStatus) {
-       print(
-             "status: ${broadcastStatus.state.toString()} | ${broadcastStatus.message}");
-   },
+    androidLicenseKey: "GOSK-9C47-010C-2895-D225-9FEF",
+    iosLicenseKey: "GOSK-9C47-010C-A9B9-EB78-3FBD",
+    controller: controller,
+    statusCallback: (status) {
+        print("status: ${status.mState} | ${status.isStarting()} | ${status.isReady()}");
+    },
+    broadcastStatusCallback: (broadcastStatus) {
+        print("status: ${broadcastStatus.state.toString()} | ${broadcastStatus.message}");
+    },
 )
 ```
 
@@ -79,6 +69,19 @@ Control live streams
 WOWZCameraController controller = WOWZCameraController();
 ```
 
+configuration wowza
+
+```dart
+controller.setWOWZConfig(
+              hostAddress: "xxx.xxx.xxx.xxx",
+              portNumber: 1935,
+              applicationName: "xxxxxx",
+              streamName: "xxxxx",
+              username: "xxxx",
+              password: "xxxx",
+              scaleMode: ScaleMode.FILL_VIEW
+          );
+```
 
 ## Functionality supported
 

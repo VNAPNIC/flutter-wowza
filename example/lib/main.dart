@@ -45,10 +45,8 @@ class _MyAppState extends State<MyApp> {
                 height: 720,
                 width: 1280,
                 child: WOWZCameraView(
-                  apiLicenseKey:
-                      (defaultTargetPlatform == TargetPlatform.android)
-                          ? "GOSK-9C47-010C-2895-D225-9FEF"
-                          : "GOSK-9C47-010C-A9B9-EB78-3FBD",
+                  androidLicenseKey: "GOSK-9C47-010C-2895-D225-9FEF",
+                  iosLicenseKey: "GOSK-9C47-010C-A9B9-EB78-3FBD",
                   controller: controller,
                   statusCallback: (status) {
                     print(
