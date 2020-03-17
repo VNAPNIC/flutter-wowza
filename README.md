@@ -9,7 +9,7 @@ Learn more about using GoCoder here
 Get the Free License [Free License](https://www.wowza.com/products/gocoder/sdk/license)
 
 Connect the Wowza GoCoder encoding app to Wowza Streaming Engine
-[Docs](https://www.wowza.com/docs/how-to-connect-the-wowza-gocoder-encoding-app-to-wowza-streaming-engine)
+[Docs](https://www.wowza.com/docs/how-to-connect-the-wowza-gocoder-encoding-app-to-wowza-streaming-engine) | 
 [Youtube](https://www.youtube.com/watch?v=M860TAk4hWA&fbclid=IwAR2kdg_TIUvCDAt1if3zWBe4O_wSzdSwPTV-_J71VYN4BHQb1wWakPNvUb8)
 
 <img src="https://raw.githubusercontent.com/VNAPNIC/flutter-wowza/master/resouces/mobile.jpg" data-canonical-src="https://raw.githubusercontent.com/VNAPNIC/flutter-wowza/master/resouces/mobile.jpg" width="400" />
