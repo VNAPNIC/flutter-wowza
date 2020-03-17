@@ -1,3 +1,7 @@
+## 0.1.8
+
+* Update Readme.md
+
 ## 0.1.7
 
 * I split 2 license key for 2 platforms for easy management
