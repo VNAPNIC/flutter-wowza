@@ -1,3 +1,10 @@
+## 0.1.9
+
+* new state for broadcast stream
+*   IDLE_ERROR,
+*   READY_ERROR,
+*   BROADCASTING_ERROR
+
 ## 0.1.8
 
 * Update Readme.md
