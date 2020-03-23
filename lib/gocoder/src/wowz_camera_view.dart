@@ -2,7 +2,14 @@ part of gocoder;
 
 const _camera_view_channel = 'flutter_wowza';
 
-enum BroadcastState { READY, BROADCASTING, IDLE }
+enum BroadcastState {
+  READY,
+  BROADCASTING,
+  IDLE,
+  IDLE_ERROR,
+  READY_ERROR,
+  BROADCASTING_ERROR
+}
 
 WOWZBroadcastStatus wowzBroadcastStatusFromJson(String str) =>
     WOWZBroadcastStatus.fromJson(json.decode(str));
@@ -12,23 +19,18 @@ String clientToJson(WOWZBroadcastStatus data) => json.encode(data.toJson());
 class WOWZBroadcastStatus {
   BroadcastState state;
   String message;
+  bool isError = false;
 
-  WOWZBroadcastStatus({
-    this.state,
-    this.message,
-  });
+  WOWZBroadcastStatus({this.state, this.message});
 
   factory WOWZBroadcastStatus.fromJson(Map<String, dynamic> json) =>
       WOWZBroadcastStatus(
-        state: BroadcastState.values.firstWhere(
-            (type) => type.toString() == "BroadcastState." + json["state"]),
-        message: json["message"],
-      );
+          state: BroadcastState.values.firstWhere(
+              (type) => type.toString() == "BroadcastState." + json["state"]),
+          message: json["message"]);
 
-  Map<String, dynamic> toJson() => {
-        "state": state.toString(),
-        "message": message,
-      };
+  Map<String, dynamic> toJson() =>
+      {"state": state.toString(), "message": message};
 }
 
 enum WOWZMediaConfig {
@@ -163,8 +165,22 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
                 wowzBroadcastStatusFromJson(call.arguments));
             break;
           case _broadcastError:
-            widget.broadcastStatusCallback(
-                wowzBroadcastStatusFromJson(call.arguments));
+            final status = wowzBroadcastStatusFromJson(call.arguments);
+            switch (status.state) {
+              case BroadcastState.IDLE:
+                status.state = BroadcastState.IDLE_ERROR;
+                break;
+              case BroadcastState.BROADCASTING:
+                status.state = BroadcastState.BROADCASTING_ERROR;
+                break;
+              case BroadcastState.READY:
+                status.state = BroadcastState.READY_ERROR;
+                break;
+              default:
+                status.state = BroadcastState.BROADCASTING_ERROR;
+                break;
+            }
+            widget.broadcastStatusCallback(status);
             break;
           case _wowzStatus:
             widget.statusCallback(WOWZStatus(call.arguments));
