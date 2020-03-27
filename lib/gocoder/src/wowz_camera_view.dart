@@ -82,7 +82,7 @@ class WOWZCameraView extends StatefulWidget {
   final String iosLicenseKey;
 }
 
-class _WOWZCameraViewState extends State<WOWZCameraView> {
+class _WOWZCameraViewState extends State<WOWZCameraView> with AutomaticKeepAliveClientMixin{
   var _viewId = 0;
   MethodChannel _channel;
 
@@ -136,6 +136,7 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
 
   @override
   Widget build(BuildContext context) {
+   super.build(context);
     return (defaultTargetPlatform == TargetPlatform.android)
         ? AndroidView(
             viewType: _camera_view_channel,
@@ -202,6 +203,9 @@ class _WOWZCameraViewState extends State<WOWZCameraView> {
       }
     }
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 @immutable
