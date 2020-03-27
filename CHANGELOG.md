@@ -1,3 +1,7 @@
+## 0.1.10
+
+* add AutomaticKeepAliveClientMixin 
+
 ## 0.1.9
 
 * new state for broadcast stream
