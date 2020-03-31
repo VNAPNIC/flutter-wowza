@@ -1,3 +1,7 @@
+## 0.1.11
+
+* fix IOS 11 Pro Max not accept camera
+
 ## 0.1.10
 
 * add AutomaticKeepAliveClientMixin 
