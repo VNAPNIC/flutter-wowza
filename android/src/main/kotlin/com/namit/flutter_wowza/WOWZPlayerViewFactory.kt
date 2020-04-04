@@ -1,6 +1,7 @@
 package com.namit.flutter_wowza
 
 import android.content.Context
+import android.util.Log
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry
@@ -8,12 +9,14 @@ import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
 
-class WOWZCameraViewFactory(private val messenger: BinaryMessenger,private val registrar: PluginRegistry.Registrar) : PlatformViewFactory(StandardMessageCodec.INSTANCE){
+class WOWZPlayerViewFactory(private val messenger: BinaryMessenger, private val registrar: PluginRegistry.Registrar) : PlatformViewFactory(StandardMessageCodec.INSTANCE){
 
     override fun create(context: Context?, viewId: Int, args: Any?): PlatformView {
-        val methodChannel = MethodChannel(messenger, "${CAMERA_VIEW_ID}_$viewId")
+        Log.i("WOWZPlayerViewFactory", "create  $viewId")
+
+        val methodChannel = MethodChannel(messenger, "${PLAYER_VIEW_ID}_$viewId")
         val params = args?.let { args as? Map<String, Any> }
-        return FlutterWOWZCameraView(context,registrar, methodChannel, viewId, params)
+        return FlutterWOWZPlayerView(context,registrar, methodChannel, viewId, params)
     }
 
 }
