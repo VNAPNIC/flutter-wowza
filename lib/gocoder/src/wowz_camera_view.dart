@@ -1,48 +1,30 @@
 part of gocoder;
 
-const _camera_view_channel = 'flutter_wowza';
-
 enum BroadcastState {
   READY,
   BROADCASTING,
-  IDLE,
-  IDLE_ERROR,
-  READY_ERROR,
-  BROADCASTING_ERROR
+  IDLE
 }
 
-WOWZBroadcastStatus wowzBroadcastStatusFromJson(String str) =>
-    WOWZBroadcastStatus.fromJson(json.decode(str));
+BroadcastStatus broadcastStatusFromJson(String str) =>
+    BroadcastStatus.fromJson(json.decode(str));
 
-String clientToJson(WOWZBroadcastStatus data) => json.encode(data.toJson());
+String broadcastStatusToJson(BroadcastStatus data) => json.encode(data.toJson());
 
-class WOWZBroadcastStatus {
+class BroadcastStatus {
   BroadcastState state;
   String message;
-  bool isError = false;
 
-  WOWZBroadcastStatus({this.state, this.message});
+  BroadcastStatus({this.state, this.message});
 
-  factory WOWZBroadcastStatus.fromJson(Map<String, dynamic> json) =>
-      WOWZBroadcastStatus(
+  factory BroadcastStatus.fromJson(Map<String, dynamic> json) =>
+      BroadcastStatus(
           state: BroadcastState.values.firstWhere(
-              (type) => type.toString() == "BroadcastState." + json["state"]),
+                  (type) => type.toString() == "BroadcastState." + json["state"]),
           message: json["message"]);
 
   Map<String, dynamic> toJson() =>
       {"state": state.toString(), "message": message};
-}
-
-enum WOWZMediaConfig {
-  FRAME_SIZE_176x144,
-  FRAME_SIZE_320x240,
-  FRAME_SIZE_352x288,
-  FRAME_SIZE_640x480,
-  FRAME_SIZE_960x540,
-  FRAME_SIZE_1280x720,
-  FRAME_SIZE_1440x1080,
-  FRAME_SIZE_1920x1080,
-  FRAME_SIZE_3840x2160
 }
 
 enum ScaleMode {
@@ -53,90 +35,174 @@ enum ScaleMode {
   FILL_VIEW
 }
 
-typedef WOWZStatusCallback = Function(WOWZStatus);
-typedef WOWZBroadcastStatusCallback = Function(WOWZBroadcastStatus);
+class BroadcastControllerValue {
+  BroadcastControllerValue({this.event, this.value});
 
-abstract class OnWOWZBroadcastStatusCallback {
-  void onWZStatus(WOWZBroadcastStatus status);
+  final Event event;
 
-  void onWZError(WOWZBroadcastStatus status);
+  final dynamic value;
 }
+
+/// Channel controller
+class BroadcastController extends Controller<BroadcastControllerValue> {
+  BroadcastController() : super(BroadcastControllerValue());
+
+  bool _initialization;
+
+  void _setInitialization() {
+    _initialization = true;
+    value = BroadcastControllerValue(event: Event.initialization);
+  }
+
+  bool isInitialization() => _initialization;
+
+
+  /// Updates the property values of this instance with the property values from the specified preset configuration.
+  void set(WOWZBroadcastConfig preset) {
+    if (preset != null) {
+      _config = preset;
+      _channel?.invokeMethod(_push_config, json.encode(_config.toDataMap()));
+      debugPrint("WOWZBroadcastConfig: ${json.encode(_config.toDataMap())}");
+    } else {
+      debugPrint("WOWZBroadcastConfig is not allowed to null!!!");
+    }
+  }
+
+  WOWZBroadcastConfig _config;
+
+  openCamera(WOWZBroadcastConfig preset) {
+    if (preset != null) {
+      _config = preset;
+      debugPrint(
+          "WOWZBroadcastConfig config: ${json.encode(_config.toDataMap())}");
+      _channel?.invokeMethod(_open_camera, json.encode(_config.toDataMap()));
+    } else {
+      debugPrint("WOWZBroadcastConfig is not allowed to null!!!");
+    }
+  }
+
+  stopCamera() {
+    _channel?.invokeMethod(_stop_camera, "");
+  }
+
+  startBroadcast(WOWZBroadcastConfig preset) {
+    if (preset != null) {
+      _config = preset;
+      debugPrint(
+          "WOWZBroadcastConfig config: ${json.encode(_config.toDataMap())}");
+      _channel?.invokeMethod(
+          _start_broadcast, json.encode(_config.toDataMap()));
+    } else {
+      debugPrint("WOWZBroadcastConfig is not allowed to null!!!");
+    }
+  }
+
+  endBroadcast() {
+    _channel?.invokeMethod(_end_broadcast, "");
+  }
+
+  switchCamera() {
+    _channel?.invokeMethod(_switch_camera, "");
+  }
+
+  flashLight(bool flashLight) {
+    _channel?.invokeMethod(_flash_light, "$flashLight");
+  }
+
+  setScaleMode(ScaleMode scaleMode) {
+    _channel?.invokeMethod(_scale_mode, scaleMode.toString());
+  }
+}
+
+class WOWZBroadcastConfig extends WOWZStreamConfig {
+  WOWZBroadcastConfig({this.logLevel});
+
+  int logLevel;
+  bool abrActive;
+
+  Map toDataMap() {
+    final map = {};
+    // just for WOWZBroadcastConfig
+    map["logLevel"] = logLevel;
+    map["abrActive"] = "$abrActive";
+
+    // common config
+    map["presetLabel"] = presetLabel;
+    map["hostAddress"] = hostAddress;
+    map["applicationName"] = applicationName;
+    map["streamName"] = streamName;
+    map["portNumber"] = portNumber;
+    map["username"] = username;
+    map["password"] = password;
+
+    map["isPlayback"] = "$isPlayback";
+    map["hlsEnabled"] = "$hlsEnabled";
+    map["hlsBackupUrl"] = hlsBackupUrl;
+
+    map["videoEnabled"] = "$videoEnabled";
+    if (videoEnabled) {
+      map["videoFrameWidth"] = videoFrameWidth;
+      map["videoFrameHeight"] = videoFrameHeight;
+      map["videoBitRate"] = videoBitRate;
+      map["videoFramerate"] = videoFramerate;
+      map["videoKeyFrameInterval"] = videoKeyFrameInterval;
+      if (videoProfileLevel != null) {
+        map["videoProfile"] = videoProfileLevel.mProfile;
+        map["videoProfileLevel"] = videoProfileLevel.mLevel;
+      }
+    }
+
+    map["audioEnabled"] = "$audioEnabled";
+    if (audioEnabled) {
+      map["audioChannels"] = audioChannels;
+      map["audioSampleRate"] = audioSampleRate;
+      map["audioBitrate"] = audioBitrate;
+    }
+
+    map["abrEnabled"] = "$abrEnabled";
+    if (abrEnabled) {
+      map["vbeFrameBufferSizeMultiplier"] = vbeFrameBufferSizeMultiplier;
+      map["vbeFrameRateLowBandwidthSkipCount"] =
+          vbeFrameRateLowBandwidthSkipCount;
+    }
+
+    return map;
+  }
+}
+
+typedef BroadcastStatusCallback = Function(BroadcastStatus);
+typedef BroadcastErrorCallback = Function(BroadcastStatus);
 
 class WOWZCameraView extends StatefulWidget {
   WOWZCameraView(
-      {@required this.controller,
-      @required this.androidLicenseKey,
+      {@required this.androidLicenseKey,
       @required this.iosLicenseKey,
-      this.statusCallback,
-      this.broadcastStatusCallback});
+      @required this.controller,
+      this.broadcastStatusCallback,
+      this.broadcastErrorCallback,
+      this.wantKeepAlive = false});
 
-  @override
-  _WOWZCameraViewState createState() => _WOWZCameraViewState();
+  final bool wantKeepAlive;
 
-  final WOWZCameraController controller;
-
-  final WOWZStatusCallback statusCallback;
-  final WOWZBroadcastStatusCallback broadcastStatusCallback;
+  final BroadcastController controller;
+  final BroadcastStatusCallback broadcastStatusCallback;
+  final BroadcastStatusCallback broadcastErrorCallback;
 
   final String androidLicenseKey;
   final String iosLicenseKey;
+
+  @override
+  _WOWZCameraViewState createState() => _WOWZCameraViewState();
 }
 
-class _WOWZCameraViewState extends State<WOWZCameraView> with AutomaticKeepAliveClientMixin{
+class _WOWZCameraViewState extends State<WOWZCameraView>
+    with AutomaticKeepAliveClientMixin {
   var _viewId = 0;
   MethodChannel _channel;
 
   @override
-  void initState() {
-    super.initState();
-    widget.controller?.addListener(() {
-      if (widget.controller != null && widget.controller.value != null) {
-        print('controller event: ${widget.controller.value.event}');
-        switch (widget.controller.value.event) {
-          case _flashlight:
-            if (defaultTargetPlatform == TargetPlatform.android)
-              _channel?.invokeMethod(
-                  widget.controller.value.event, widget.controller.value.value);
-            else
-              _channel?.invokeMethod(widget.controller.value.value
-                  ? _flashlightOn
-                  : _flashlightOff);
-            break;
-          case _muted:
-            if (defaultTargetPlatform == TargetPlatform.android)
-              _channel?.invokeMethod(
-                  widget.controller.value.event, widget.controller.value.value);
-            else
-              _channel?.invokeMethod(
-                  widget.controller.value.value ? _mutedOn : _mutedOff);
-            break;
-          case _startPreview:
-          case _startPreview:
-          case _stopPreview:
-          case _pausePreview:
-          case _continuePreview:
-          case _isSwitchCameraAvailable:
-          case _onPause:
-          case _onResume:
-          case _switchCamera:
-          case _fps:
-          case _bps:
-          case _khz:
-          case _startBroadcast:
-          case _endBroadcast:
-            _channel?.invokeMethod(
-                widget.controller.value.event, widget.controller.value.value);
-            break;
-          default:
-            break;
-        }
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-   super.build(context);
+    super.build(context);
     return (defaultTargetPlatform == TargetPlatform.android)
         ? AndroidView(
             viewType: _camera_view_channel,
@@ -148,138 +214,42 @@ class _WOWZCameraViewState extends State<WOWZCameraView> with AutomaticKeepAlive
                 onPlatformViewCreated: _onPlatformViewCreated,
               )
             : Text(
-                '$defaultTargetPlatform is not yet supported by the text_view plugin');
+                '$defaultTargetPlatform is not yet supported by the flutter_wowza plugin');
   }
 
   _onPlatformViewCreated(int viewId) {
     if (_viewId != viewId || _channel == null) {
-      _viewId = viewId;
+      debugPrint(
+          'WOWZCameraView: MethodChannel: ${_player_view_channel}_$viewId');
 
-      _channel = MethodChannel("${_camera_view_channel}_$viewId");
+      _channel = MethodChannel("${_player_view_channel}_$viewId");
       widget.controller?._setChannel(_channel);
 
       _channel.setMethodCallHandler((call) async {
-        print('wowz: status: ${call.arguments}');
+        debugPrint(
+            'WOWZCameraView: method: ${call.method} | arguments: ${call.arguments}');
         switch (call.method) {
-          case _broadcastStatus:
+          case _broadcast_status:
             widget.broadcastStatusCallback(
-                wowzBroadcastStatusFromJson(call.arguments));
+                broadcastStatusFromJson(call.arguments));
             break;
-          case _broadcastError:
-            final status = wowzBroadcastStatusFromJson(call.arguments);
-            switch (status.state) {
-              case BroadcastState.IDLE:
-                status.state = BroadcastState.IDLE_ERROR;
-                break;
-              case BroadcastState.BROADCASTING:
-                status.state = BroadcastState.BROADCASTING_ERROR;
-                break;
-              case BroadcastState.READY:
-                status.state = BroadcastState.READY_ERROR;
-                break;
-              default:
-                status.state = BroadcastState.BROADCASTING_ERROR;
-                break;
-            }
-            widget.broadcastStatusCallback(status);
-            break;
-          case _wowzStatus:
-            widget.statusCallback(WOWZStatus(call.arguments));
-            break;
-          case _wowzError:
-            widget.statusCallback(WOWZStatus(call.arguments));
+          case _broadcast_error:
+            widget.broadcastErrorCallback(
+                broadcastStatusFromJson(call.arguments));
             break;
         }
       });
-      // license key gocoder sdk
+
       _channel.invokeMethod(
           _apiLicenseKey,
           (defaultTargetPlatform == TargetPlatform.android)
               ? widget.androidLicenseKey
               : widget.iosLicenseKey);
 
-      if (widget.controller.configIsWaiting) {
-        widget.controller.resetConfig();
-      }
+      widget.controller?._setInitialization();
     }
   }
 
   @override
-  bool get wantKeepAlive => true;
-}
-
-@immutable
-class WOWZSize {
-  WOWZSize(this.width, this.height);
-
-  final int width;
-  final int height;
-}
-
-@immutable
-// ignore: must_be_immutable
-class WOWZStatus {
-  int mState = 0;
-
-  WOWZStatus(this.mState);
-
-  bool isIdle() {
-    return this.mState == 0;
-  }
-
-  bool isStarting() {
-    return this.mState == 1;
-  }
-
-  bool isReady() {
-    return this.mState == 2;
-  }
-
-  bool isRunning() {
-    return this.mState == 3;
-  }
-
-  bool isPaused() {
-    return this.mState == 5;
-  }
-
-  bool isStopping() {
-    return this.mState == 4;
-  }
-
-  bool isStopped() {
-    return this.mState == 6;
-  }
-
-  bool isComplete() {
-    return this.mState == 7;
-  }
-
-  bool isShutdown() {
-    return this.mState == 9;
-  }
-
-  bool isUnknown() {
-    return this.mState == 11;
-  }
-
-  bool isBuffering() {
-    return this.mState == 12;
-  }
-
-  bool isPlayerBuffering() {
-    return this.mState == 24;
-  }
-
-  bool isPlayerIdle() {
-    return this.mState == 20;
-  }
-
-  bool isPlayerStopping() {
-    return this.mState == 23;
-  }
-
-  bool isPlayerRunning() {
-    return this.mState == 21;
-  }
+  bool get wantKeepAlive => widget.wantKeepAlive;
 }
