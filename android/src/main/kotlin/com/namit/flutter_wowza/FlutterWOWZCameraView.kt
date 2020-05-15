@@ -10,8 +10,6 @@ import android.util.Log
 import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.wowza.gocoder.sdk.api.WowzaGoCoder
 import com.wowza.gocoder.sdk.api.broadcast.WOWZBroadcast
 import com.wowza.gocoder.sdk.api.broadcast.WOWZBroadcastConfig
@@ -19,8 +17,6 @@ import com.wowza.gocoder.sdk.api.configuration.WOWZMediaConfig
 import com.wowza.gocoder.sdk.api.devices.WOWZAudioDevice
 import com.wowza.gocoder.sdk.api.devices.WOWZCameraView
 import com.wowza.gocoder.sdk.api.geometry.WOWZSize
-import com.wowza.gocoder.sdk.api.h264.WOWZProfileLevel
-import com.wowza.gocoder.sdk.api.player.WOWZPlayerConfig
 import com.wowza.gocoder.sdk.api.status.WOWZBroadcastStatus
 import com.wowza.gocoder.sdk.api.status.WOWZBroadcastStatusCallback
 import com.wowza.gocoder.sdk.support.status.WOWZStatus
@@ -38,12 +34,10 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
         WOWZBroadcastStatusCallback, WOWZStatusCallback,
         PluginRegistry.RequestPermissionsResultListener {
 
-    private val TAG = FlutterWOWZCameraView::class.java.simpleName
-
     private var mPermissionsGranted = false
     private var hasRequestedPermissions = false
-    private var videoIsInitialized = false
-    private var audioIsInitialized = false
+    var videoIsInitialized = false
+    var audioIsInitialized = false
 
     private val PERMISSIONS_REQUEST_CODE = 0x1
 
@@ -54,18 +48,13 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
 //            Manifest.permission.READ_PHONE_STATE
     )
 
-    // Make WOWZCameraView
     private val goCoderCameraView: WOWZCameraView = WOWZCameraView(context)
-
     // The top-level GoCoder API interface
     private var goCoder: WowzaGoCoder? = null
-
     // The GoCoder SDK audio device
     private var goCoderAudioDevice: WOWZAudioDevice? = null
-
     // The GoCoder SDK broadcaster
     private var goCoderBroadcaster: WOWZBroadcast? = null
-
     // The broadcast configuration settings
     private var goCoderBroadcastConfig: WOWZBroadcastConfig? = null
 
@@ -88,45 +77,46 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
-        Log.i(TAG, "Channel: method: ${call.method} | arguments: ${call.arguments}")
+        Log.i("FlutterWOWZCameraView", "Channel: method: ${call.method} | arguments: ${call.arguments}")
 
         val activeCamera = this.goCoderCameraView.camera
 
         when (call.method) {
-            "api_licenseKey" -> {
-                if (requestPermissionToAccess())
-                    onPermissionResult(true)
-                goCoder = WowzaGoCoder.init(context, call.arguments.toString())
+            "api_licenseKey" -> goCoder = WowzaGoCoder.init(context, call.arguments.toString())
+
+            "host_address" -> goCoderBroadcastConfig?.hostAddress = call.arguments.toString()
+
+            "port_number" -> goCoderBroadcastConfig?.portNumber = call.arguments.toString().toInt()
+
+            "application_name" -> goCoderBroadcastConfig?.applicationName = call.arguments.toString()
+
+            "stream_name" -> goCoderBroadcastConfig?.streamName = call.arguments.toString()
+
+            "username" -> goCoderBroadcastConfig?.username = call.arguments.toString()
+
+            "password" -> goCoderBroadcastConfig?.password = call.arguments.toString()
+
+            "wowz_size" -> {
+                val wowzSize = call.arguments.toString().split("/")
+                if (wowzSize.size > 1)
+                    goCoderCameraView.frameSize = WOWZSize(wowzSize[0].trim().toInt(), wowzSize[1].trim().toInt())
             }
-            "push_config" -> {
-                if (requestPermissionToAccess())
-                    onPermissionResult(true)
-                goCoderBroadcastConfig?.set(makeConfig(call.arguments as String?))
-                Log.i("FlutterWOWZCameraView", "${(goCoderBroadcastConfig as WOWZMediaConfig).toString()}")
-            }
-            "start_broadcast" -> {
-                goCoderBroadcaster?.startBroadcast(makeConfig(call.arguments as String?), this)
-                Log.i("FlutterWOWZCameraView", "${(goCoderBroadcastConfig as WOWZMediaConfig).toString()}")
-            }
-            "end_broadcast" -> {
-                goCoderBroadcaster?.endBroadcast(this)
-            }
-            "open_camera" -> {
-                if (requestPermissionToAccess()) {
-                    if (videoIsInitialized && audioIsInitialized && !goCoderCameraView.isPreviewing)
-                        goCoderCameraView.startPreview(makeConfig(call.arguments as String?))
-                    else
-                        onPermissionResult(true)
+
+            "wowz_media_config" -> {
+
+                val frame = when (call.arguments.toString()) {
+                    "WOWZMediaConfig.FRAME_SIZE_176x144" -> WOWZMediaConfig.FRAME_SIZE_176x144
+                    "WOWZMediaConfig.FRAME_SIZE_320x240" -> WOWZMediaConfig.FRAME_SIZE_320x240
+                    "WOWZMediaConfig.FRAME_SIZE_352x288" -> WOWZMediaConfig.FRAME_SIZE_352x288
+                    "WOWZMediaConfig.FRAME_SIZE_640x480" -> WOWZMediaConfig.FRAME_SIZE_640x480
+                    "WOWZMediaConfig.FRAME_SIZE_960x540" -> WOWZMediaConfig.FRAME_SIZE_960x540
+                    "WOWZMediaConfig.FRAME_SIZE_1280x720" -> WOWZMediaConfig.FRAME_SIZE_1280x720
+                    "WOWZMediaConfig.FRAME_SIZE_1440x1080" -> WOWZMediaConfig.FRAME_SIZE_1440x1080
+                    "WOWZMediaConfig.FRAME_SIZE_1920x1080" -> WOWZMediaConfig.FRAME_SIZE_1920x1080
+                    "WOWZMediaConfig.FRAME_SIZE_3840x2160" -> WOWZMediaConfig.FRAME_SIZE_3840x2160
+                    else -> WOWZMediaConfig.FRAME_SIZE_640x480
                 }
-            }
-            "stop_camera" -> {
-                goCoderCameraView.stopPreview()
-            }
-            "switch_camera" -> {
-                goCoderCameraView.switchCamera()
-            }
-            "flash_light" -> {
-                activeCamera.isTorchOn = call.arguments == "true"
+                goCoderBroadcastConfig?.set(frame)
             }
 
             "scale_mode" -> {
@@ -137,82 +127,49 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
 
                 goCoderCameraView.scaleMode = scale
             }
-        }
-    }
 
-    private fun makeConfig(dataMap: String?): WOWZBroadcastConfig? {
-        val config = WOWZBroadcastConfig()
-
-        dataMap?.let { json ->
-            val retMap: Map<String, Any> = Gson().fromJson(
-                    json, object : TypeToken<HashMap<String?, Any?>?>() {}.type
-            )
-            if (retMap["abrActive"] != null)
-                config.isABREnabled = (retMap["abrActive"] as String) == "true"
-
-            // Stream  config
-            if (retMap["hostAddress"] != null)
-                config.hostAddress = retMap["hostAddress"] as String
-            if (retMap["applicationName"] != null)
-                config.applicationName = retMap["applicationName"] as String
-            if (retMap["streamName"] != null)
-                config.streamName = retMap["streamName"] as String
-            if (retMap["portNumber"] != null)
-                config.portNumber = (retMap["portNumber"] as Double).toInt()
-            if (retMap["username"] != null)
-                config.username = retMap["username"] as String
-            if (retMap["password"] != null)
-                config.password = retMap["password"] as String
-
-            // player config
-            if (retMap["isPlayback"] != null)
-                config.isPlayback = (retMap["isPlayback"] as String) == "true"
-            if (retMap["hlsEnabled"] != null)
-                config.isHLSEnabled = (retMap["hlsEnabled"] as String) == "true"
-            if (retMap["hlsBackupUrl"] != null)
-                config.hlsBackupURL = retMap["hlsBackupUrl"] as String
-
-            // video
-            if (retMap["videoEnabled"] != null)
-                config.isVideoEnabled = (retMap["videoEnabled"] as String) == "true"
-            if (retMap["videoFrameWidth"] != null)
-                config.videoFrameWidth = (retMap["videoFrameWidth"] as Double).toInt()
-            if (retMap["videoFrameHeight"] != null)
-                config.videoFrameHeight = (retMap["videoFrameHeight"] as Double).toInt()
-            if (retMap["videoBitRate"] != null)
-                config.videoBitRate = (retMap["videoBitRate"] as Double).toInt()
-            if (retMap["videoFramerate"] != null)
-                config.videoFramerate = (retMap["videoFramerate"] as Double).toInt()
-            if (retMap["videoKeyFrameInterval"] != null)
-                config.videoKeyFrameInterval = (retMap["videoKeyFrameInterval"] as Double).toInt()
-            if (retMap["videoProfile"] != null)
-                if (retMap["videoProfileLevel"] != null) {
-                    config.videoProfileLevel = WOWZProfileLevel((retMap["videoProfile"] as Double).toInt(), (retMap["videoProfileLevel"] as Double).toInt())
-                } else {
-                    config.videoProfileLevel = WOWZProfileLevel((retMap["videoProfile"] as Double).toInt())
+            "init_go_coder" -> {
+                if (requestPermissionToAccess())
+                    onPermissionResult(true)
+            }
+            "start_preview" -> {
+                if (requestPermissionToAccess()) {
+                    if (videoIsInitialized && audioIsInitialized && !goCoderCameraView.isPreviewing )
+                        goCoderCameraView.startPreview()
+                    else
+                        onPermissionResult(true)
                 }
+            }
+            "pause_preview" -> activeCamera?.pausePreview()
 
-            // audio
-            if (retMap["audioEnabled"] != null)
-                config.isVideoEnabled = (retMap["audioEnabled"] as String) == "true"
-            if (retMap["audioChannels"] != null)
-                config.audioChannels = (retMap["audioChannels"] as Double).toInt()
-            if (retMap["audioSampleRate"] != null)
-                config.audioSampleRate = (retMap["audioSampleRate"] as Double).toInt()
-            if (retMap["audioBitrate"] != null)
-                config.audioBitRate = (retMap["audioBitrate"] as Double).toInt()
+            "continue_preview" -> activeCamera.continuePreview()
 
-            //abr
-            if (retMap["abrEnabled"] != null)
-                config.isABREnabled = (retMap["abrEnabled"] as String) == "true"
-            if (retMap["vbeFrameBufferSizeMultiplier"] != null)
-                config.frameBufferSizeMultiplier = (retMap["vbeFrameBufferSizeMultiplier"] as Double).toInt()
-            if (retMap["vbeFrameRateLowBandwidthSkipCount"] != null)
-                config.frameRateLowBandwidthSkipCount = (retMap["vbeFrameRateLowBandwidthSkipCount"] as Double).toInt()
-            return config
+            "stop_preview" -> goCoderCameraView.stopPreview()
+
+            "switch_camera" -> goCoderCameraView.switchCamera()
+
+            "flashlight" -> activeCamera.isTorchOn = call.arguments.toString().toBoolean()
+
+            "fps" -> goCoderBroadcastConfig?.videoFramerate = call.arguments.toString().toInt()
+
+            "bps" -> goCoderBroadcastConfig?.videoBitRate = call.arguments.toString().toInt()
+
+            "khz" -> goCoderBroadcastConfig?.audioSampleRate = call.arguments.toString().toInt()
+
+            "muted" -> goCoderAudioDevice?.isMuted = call.arguments.toString().toBoolean()
+
+            "is_switch_camera_available" -> result.success(goCoderCameraView.isSwitchCameraAvailable)
+
+            "is_initialized" -> result.success(WowzaGoCoder.isInitialized())
+
+            "start_broadcast" -> goCoderBroadcaster?.startBroadcast(goCoderBroadcastConfig, this)
+
+            "end_broadcast" -> goCoderBroadcaster?.endBroadcast(this)
+
+            "on_pause" -> goCoderCameraView.onPause()
+
+            "on_resume" -> goCoderCameraView.onResume()
         }
-        config.resetToDefaults()
-        return config
     }
 
     override fun onWZStatus(status: WOWZBroadcastStatus?) {
@@ -234,7 +191,7 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
         // Display the status message using the U/I thread
         Handler(Looper.getMainLooper()).post {
             methodChannel.invokeMethod("broadcast_status", "{\"state\":\"${status?.state?.name}\",\"message\":\"${statusMessage.toString()}\"}")
-            Log.i(TAG, "broadcast_status: ${statusMessage.toString()}")
+            Log.i("FlutterWOWZCameraView", "broadcast_status: ${statusMessage.toString()}")
         }
     }
 
@@ -242,17 +199,25 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
         // Display the status message using the U/I thread
         Handler(Looper.getMainLooper()).post {
             methodChannel.invokeMethod("broadcast_error", "{\"state\":\"${status?.state?.name}\",\"message\":\"${status?.lastError?.errorDescription}\"}")
-            Log.i(TAG, "broadcast_error: ${status?.lastError?.errorDescription}")
+            Log.i("FlutterWOWZCameraView", "broadcast_error: ${status?.lastError?.errorDescription}")
         }
     }
 
     // wowz_status
     override fun onWZStatus(status: WOWZStatus?) {
         // Display the status message using the U/I thread
+        Handler(Looper.getMainLooper()).post {
+            methodChannel.invokeMethod("wowz_status", status?.state)
+            Log.i("FlutterWOWZCameraView", "wowz_status: ${status?.toString()}")
+        }
     }
 
     override fun onWZError(status: WOWZStatus?) {
         // Display the status message using the U/I thread
+        Handler(Looper.getMainLooper()).post {
+            methodChannel.invokeMethod("wowz_serror", status?.state)
+            Log.i("FlutterWOWZCameraView", "wowz_serror: ${status?.toString()}")
+        }
     }
 
     private fun requestPermissionToAccess(): Boolean {
@@ -295,7 +260,7 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
                 }
             }
         } else {
-            Log.e(TAG, "goCoderBroadcaster is null!")
+            Log.e("FlutterWOWZCameraView", "goCoderBroadcaster is null!")
             result = false
         }
         return result
@@ -309,7 +274,7 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
                 }
             }
         } else {
-            Log.e(TAG, "goCoderBroadcaster is null!")
+            Log.e("FlutterWOWZCameraView", "goCoderBroadcaster is null!")
             return false
         }
         return true
@@ -329,7 +294,7 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
             }
         }
 
-        Log.i(TAG, "onRequestPermissionsResult  has requested: $hasRequestedPermissions")
+        Log.i("FlutterWOWZCameraView", "onRequestPermissionsResult  has requested: $hasRequestedPermissions")
         return true
     }
 
@@ -338,25 +303,25 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
             if (mPermissionsGranted) {
                 // Initialize the camera preview
                 if (requestPermissionToAccess(Manifest.permission.CAMERA)) {
-                    if (!videoIsInitialized) {
+                    if(!videoIsInitialized) {
                         val availableCameras = goCoderCameraView.cameras
                         // Ensure we can access to at least one camera
                         if (availableCameras.isNotEmpty()) {
                             // Set the video broadcaster in the broadcast config
                             goCoderBroadcastConfig?.videoBroadcaster = goCoderCameraView
                             videoIsInitialized = true
-                            Log.i(TAG, "*** getOriginalFrameSizes - Get original frame size : ")
+                            Log.i("FlutterWOWZCameraView", "*** getOriginalFrameSizes - Get original frame size : ")
                         } else {
-                            Log.e(TAG, "Could not detect or gain access to any cameras on this device")
+                            Log.e("FlutterWOWZCameraView", "Could not detect or gain access to any cameras on this device")
                             goCoderBroadcastConfig?.isVideoEnabled = false
                         }
                     }
                 } else {
-                    Log.e(TAG, "Exception Fail to connect to camera service. I checked camera permission in Settings")
+                    Log.e("FlutterWOWZCameraView", "Exception Fail to connect to camera service. I checked camera permission in Settings")
                 }
 
                 if (requestPermissionToAccess(Manifest.permission.RECORD_AUDIO)) {
-                    if (!audioIsInitialized) {
+                    if(!audioIsInitialized) {
                         // Create an audio device instance for capturing and broadcasting audio
                         goCoderAudioDevice = WOWZAudioDevice()
                         // Set the audio broadcaster in the broadcast config
@@ -364,17 +329,17 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
                         audioIsInitialized = true
                     }
                 } else {
-                    Log.e(TAG, "Exception Fail to connect to record audio service. I checked camera permission in Settings")
+                    Log.e("FlutterWOWZCameraView", "Exception Fail to connect to record audio service. I checked camera permission in Settings")
                 }
 
                 if (videoIsInitialized && audioIsInitialized) {
-                    Log.i(TAG, "startPreview")
+                    Log.i("FlutterWOWZCameraView", "startPreview")
                     if (!goCoderCameraView.isPreviewing)
                         goCoderCameraView.startPreview()
                 }
             }
         } else {
-            Log.e(TAG, "goCoder is null!, Please check the license key GoCoder SDK, maybe your license key GoCoder SDK is wrong!")
+            Log.e("FlutterWOWZCameraView", "goCoder is null!, Please check the license key GoCoder SDK, maybe your license key GoCoder SDK is wrong!")
         }
     }
 }

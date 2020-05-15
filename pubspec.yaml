@@ -1,11 +1,11 @@
 name: flutter_wowza
 description: Flutter WOWZA plugin for iOS/Android. The project is based on Wowza GoCoder SDK
 homepage: https://github.com/VNAPNIC/flutter-wowza
-version: 0.1.11
+version: 0.1.10
 author: vn.apnic@gmail.comn
 
 environment:
-  sdk: ">=2.2.0 <3.0.0"
+  sdk: ">=2.1.0 <3.0.0"
   flutter: ">=1.10.0 <2.0.0"
 
 dependencies:

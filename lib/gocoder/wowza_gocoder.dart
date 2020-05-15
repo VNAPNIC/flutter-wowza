@@ -7,7 +7,5 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 part 'src/wowz_camera_view.dart';
-part 'src/wowz_chennels.dart';
-part 'src/wowz_player_view.dart';
-part 'src/wowz_config.dart';
-part 'src/wowz_controller.dart';
+part 'src/wowz_camera_controller.dart';
+part 'src/events.dart';
