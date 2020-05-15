@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.wowza.gocoder.sdk.api.WowzaGoCoder
@@ -26,7 +27,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.platform.PlatformView
 
-
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class FlutterWOWZCameraView internal
 constructor(private val context: Context?, private val registrar: PluginRegistry.Registrar,
             private val methodChannel: MethodChannel, id: Int?, params: Map<String, Any>?) :
