@@ -1,3 +1,7 @@
+## 0.1.11
+
+* update readme
+
 ## 0.1.10
 
 * add AutomaticKeepAliveClientMixin 
