@@ -1,3 +1,10 @@
+# The project is redeveloping so that it doesn't depend on Wowza gocoder SDK
+
+#### Wowza Player, Wowza GoCoder SDK, & the technology powering the Ultra Low Latency service in Wowza Streaming Cloud will no longer be available January 5, 2021. [Learn more](https://info.wowza.com/product-notification-april-2020) .
+
+
+
+
 # flutter_wowza
 
 The project is based on [Wowza GoCoder SDK](https://www.wowza.com/docs/wowza-gocoder-sdk)
