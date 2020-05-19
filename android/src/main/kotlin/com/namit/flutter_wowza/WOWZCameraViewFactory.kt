@@ -13,9 +13,8 @@ class WOWZCameraViewFactory(private val messenger: BinaryMessenger,
     : PlatformViewFactory(StandardMessageCodec.INSTANCE){
 
     override fun create(context: Context?, viewId: Int, args: Any?): PlatformView {
-        val methodChannel = MethodChannel(messenger, "flutter_wowza_$viewId")
+        val methodChannel = MethodChannel(messenger, "${CAMERA_VIEW_CHANNEL}_$viewId")
         val params = args?.let { args as? Map<String, Any> }
         return FlutterWOWZCameraView(context,registrar, methodChannel, viewId, params)
     }
-
 }

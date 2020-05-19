@@ -8,7 +8,7 @@ enum class EventType {
     ERROR, CAMERA_CLOSING, RTMP_CONNECTED, RTMP_STOPPED, RTMP_RETRY
 }
 
-class DartMessenger(private val methodChannel: MethodChannel) {
+class InvokeMessages(private val methodChannel: MethodChannel) {
 
     fun sendCameraClosingEvent() {
         send(EventType.CAMERA_CLOSING, null)

@@ -7,6 +7,6 @@ object FlutterWowzaPlugin {
     @JvmStatic
     fun registerWith(registrar: Registrar) {
         registrar.platformViewRegistry().registerViewFactory(
-                "flutter_wowza", WOWZCameraViewFactory(registrar.messenger(),registrar))
+                CAMERA_VIEW_CHANNEL, WOWZCameraViewFactory(registrar.messenger(),registrar))
     }
 }

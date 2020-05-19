@@ -1,48 +1,34 @@
 package com.namit.flutter_wowza
 
-import android.annotation.SuppressLint
 import android.app.Activity
-import android.graphics.ImageFormat
 import android.hardware.camera2.*
-import android.hardware.camera2.CameraCaptureSession.CaptureCallback
 import android.media.CamcorderProfile
 import android.media.ImageReader
 import android.media.MediaRecorder
 import android.util.Size
-import android.view.Surface
 import com.pedro.rtplibrary.util.BitrateAdapter
-import io.flutter.plugin.common.EventChannel
-import io.flutter.plugin.common.EventChannel.EventSink
-import io.flutter.view.TextureRegistry.SurfaceTextureEntry
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.util.*
 import android.content.Context
 import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.view.OrientationEventListener
-import android.view.View
+import android.view.SurfaceView
 import androidx.annotation.RequiresApi
 import com.pedro.rtplibrary.rtmp.RtmpCamera2
-import io.flutter.plugin.common.MethodCall
-import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.PluginRegistry
-import io.flutter.plugin.platform.PlatformView
-import net.ossrs.rtmp.ConnectCheckerRtmp;
+import net.ossrs.rtmp.ConnectCheckerRtmp
 import kotlin.math.roundToInt
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class RtmpCameraView internal
-constructor(  val activity: Activity?,
-              val flutterTexture: SurfaceTextureEntry,
-              val dartMessenger: DartMessenger,
-              val cameraName: String,
-              val resolutionPreset: String?,
-              val enableAudio: Boolean) : ConnectCheckerRtmp   {
+constructor(val activity: Activity,
+            private val surfaceView: SurfaceView,
+            private val invokeMessages: InvokeMessages,
+            private val cameraName: String?,
+            private val resolutionPreset: String?,
+            val enableAudio: Boolean) : ConnectCheckerRtmp   {
 
-    private val cameraManager: CameraManager
+    private val cameraManager: CameraManager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+    private var rtmpCamera: RtmpCamera2? = RtmpCamera2(surfaceView,this)
+
     private val orientationEventListener: OrientationEventListener
     private val isFrontFacing: Boolean
     private val sensorOrientation: Int
@@ -59,12 +45,10 @@ constructor(  val activity: Activity?,
     private var recordingRtmp = false
     private val recordingProfile: CamcorderProfile
     private var currentOrientation = OrientationEventListener.ORIENTATION_UNKNOWN
-    private var rtmpCamera: RtmpCamera2? = null
+
     private var bitrateAdapter: BitrateAdapter? = null
 
     init {
-        checkNotNull(activity) { "No activity available!" }
-        cameraManager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         orientationEventListener = object : OrientationEventListener(activity.applicationContext) {
             override fun onOrientationChanged(i: Int) {
                 if (i == ORIENTATION_UNKNOWN) {
@@ -74,6 +58,8 @@ constructor(  val activity: Activity?,
                 currentOrientation = (i / 90.0).roundToInt().toInt() * 90
             }
         }
+        checkNotNull(cameraName) { "No cameraName available!" }
+
         orientationEventListener.enable()
         val characteristics = cameraManager.getCameraCharacteristics(cameraName)
         sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
@@ -89,27 +75,92 @@ constructor(  val activity: Activity?,
      * ConnectCheckerRtmp
      */
 
-    override fun onAuthSuccessRtmp() {
-        TODO("Not yet implemented")
-    }
+    override fun onAuthSuccessRtmp() {}
 
     override fun onNewBitrateRtmp(bitrate: Long) {
-        TODO("Not yet implemented")
+        bitrateAdapter?.setMaxBitrate(bitrate.toInt())
     }
 
     override fun onConnectionSuccessRtmp() {
-        TODO("Not yet implemented")
+        rtmpCamera?.let {
+            bitrateAdapter = BitrateAdapter(BitrateAdapter.Listener { bitrate -> it.setVideoBitrateOnFly(bitrate) })
+            bitrateAdapter?.setMaxBitrate(it.bitrate)
+        }
     }
 
     override fun onConnectionFailedRtmp(reason: String) {
-        TODO("Not yet implemented")
+        rtmpCamera?.let {
+            // Retry first.
+            if (it.reTry(5000, reason)) {
+                activity.runOnUiThread {
+                    invokeMessages.send(EventType.RTMP_RETRY, reason)
+                }
+            } else {
+                it.stopStream()
+                activity.runOnUiThread {
+                    invokeMessages.send(EventType.RTMP_STOPPED, "Failed retry")
+                }
+            }
+        }
     }
 
     override fun onAuthErrorRtmp() {
-        TODO("Not yet implemented")
+        activity.runOnUiThread {
+            invokeMessages.send(EventType.ERROR, "Auth error")
+        }
     }
 
     override fun onDisconnectRtmp() {
-        TODO("Not yet implemented")
+        rtmpCamera?.stopStream()
+        activity.runOnUiThread {
+            invokeMessages.send(EventType.RTMP_STOPPED, "Disconnected")
+        }
+    }
+
+    /**
+     * Event
+     */
+
+    private fun closeCaptureSession() {
+        cameraCaptureSession?.run {
+            close()
+        }
+        cameraCaptureSession = null
+    }
+
+    fun close() {
+        closeCaptureSession()
+        cameraDevice?.run {
+            close()
+        }
+        cameraDevice = null
+
+        pictureImageReader?.run {
+            close()
+        }
+        pictureImageReader = null
+
+        imageStreamReader?.run {
+            close()
+        }
+        imageStreamReader = null
+
+        mediaRecorder?.run {
+            reset()
+            release()
+
+        }
+        mediaRecorder = null
+
+        rtmpCamera?.run {
+            stopStream()
+        }
+        rtmpCamera = null
+        bitrateAdapter = null
+    }
+
+    fun dispose() {
+        close()
+        orientationEventListener.disable()
     }
 }

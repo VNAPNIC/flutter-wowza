@@ -22,11 +22,11 @@ enum class ResolutionPreset {
 object CameraUtils {
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     fun computeBestPreviewSize(cameraName: String, preset: ResolutionPreset): Size {
-        var preset = preset
-        if (preset.ordinal > ResolutionPreset.high.ordinal) {
-            preset = ResolutionPreset.high
+        var newPreset = preset
+        if (newPreset.ordinal > ResolutionPreset.high.ordinal) {
+            newPreset = ResolutionPreset.high
         }
-        val profile = getBestAvailableCamcorderProfileForResolutionPreset(cameraName, preset)
+        val profile = getBestAvailableCamcorderProfileForResolutionPreset(cameraName, newPreset)
         return Size(profile.videoFrameWidth, profile.videoFrameHeight)
     }
 
@@ -34,14 +34,14 @@ object CameraUtils {
     fun computeBestCaptureSize(streamConfigurationMap: StreamConfigurationMap): Size {
         // For still image captures, we use the largest available size.
         return Collections.max(
-                Arrays.asList(*streamConfigurationMap.getOutputSizes(ImageFormat.JPEG)),
+                listOf(*streamConfigurationMap.getOutputSizes(ImageFormat.JPEG)),
                 CompareSizesByArea())
     }
 
     @Throws(CameraAccessException::class)
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    fun getAvailableCameras(activity: Activity): List<Map<String, Any>> {
-        val cameraManager = activity.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+    fun getAvailableCameras(context: Context): List<Map<String, Any>> {
+        val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         val cameraNames = cameraManager.cameraIdList
         val cameras: MutableList<Map<String, Any>> = ArrayList()
         for (cameraName in cameraNames) {
@@ -50,8 +50,7 @@ object CameraUtils {
             details["name"] = cameraName
             val sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)
             details["sensorOrientation"] = sensorOrientation
-            val lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
-            when (lensFacing) {
+            when (characteristics.get(CameraCharacteristics.LENS_FACING)) {
                 CameraMetadata.LENS_FACING_FRONT -> details["lensFacing"] = "front"
                 CameraMetadata.LENS_FACING_BACK -> details["lensFacing"] = "back"
                 CameraMetadata.LENS_FACING_EXTERNAL -> details["lensFacing"] = "external"
