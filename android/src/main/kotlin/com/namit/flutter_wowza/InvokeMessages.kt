@@ -1,6 +1,5 @@
 package com.namit.flutter_wowza
 
-import android.text.TextUtils
 import io.flutter.plugin.common.MethodChannel
 import java.util.*
 

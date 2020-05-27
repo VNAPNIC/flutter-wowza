@@ -1,1 +1,3 @@
-{}
+{
+  "rtmp": "rtmp://${hostAddress}:${portNumber}/${applicationName}/${streamName}"
+}

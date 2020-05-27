@@ -47,12 +47,12 @@ class WOWZCameraController extends ValueNotifier<CameraControllerValue> {
       @required String streamName,
       String username,
       String password,
-      WOWZSize wowzSize,
-      WOWZMediaConfig wowzMediaConfig,
       ScaleMode scaleMode,
       int fps,
       int bps,
       int khz}) {
+
+    String url = "rtmp://$hostAddress:$portNumber/$applicationName/$streamName";
 
     if (_channel == null) {
       this.hostAddress = hostAddress;

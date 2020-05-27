@@ -2,16 +2,11 @@ package com.namit.flutter_wowza
 
 import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraAccessException
 import android.os.Build
-import android.util.Log
 import android.view.*
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
-import com.pedro.rtplibrary.rtsp.RtspCamera1
-import com.pedro.rtplibrary.rtsp.RtspCamera2
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.PluginRegistry
@@ -44,6 +39,7 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
     }
 
     override fun getView(): View {
+        mTextureView.surfaceTextureListener = this@FlutterWOWZCameraView
         return mTextureView
     }
 
@@ -59,9 +55,12 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
                     handleException(e, result)
                 }
                 "initialize" -> {
-                    mTextureView.surfaceTextureListener = this@FlutterWOWZCameraView
                     rtspCamera?.close()
-
+                    val cameraName = call.argument<String>("cameraName")
+                    val resolutionPreset = call.argument<String>("resolutionPreset")
+                    val enableAudio = call.argument<Boolean>("enableAudio")!!
+                    rtspCamera?.initialize(cameraName, resolutionPreset, enableAudio)
+                    rtspCamera?.open(result)
                 }
                 // Camera
                 "switchCamera" -> {
@@ -92,7 +91,7 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture?, width: Int, height: Int) {
-        instantiateCamera()
+        instantiateCamera(surface, width, height)
     }
 
     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture?, width: Int, height: Int) {
@@ -111,7 +110,14 @@ constructor(private val context: Context?, private val registrar: PluginRegistry
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     @Throws(CameraAccessException::class)
     private fun instantiateCamera(surface: SurfaceTexture?, width: Int, height: Int) {
-        rtspCamera = RtmpCameraView(registrar.activity(), surface)
+        checkNotNull(registrar.activity()) { "No activity available!" }
+        val invokeMessages = InvokeMessages(methodChannel)
+        rtspCamera = RtmpCameraView(registrar.activity(),
+                invokeMessages,
+                mTextureView,
+                surface,
+                width,
+                height)
     }
 
 

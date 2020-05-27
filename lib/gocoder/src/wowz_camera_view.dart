@@ -33,16 +33,27 @@ class WOWZBroadcastStatus {
       {"state": state.toString(), "message": message};
 }
 
-enum WOWZMediaConfig {
-  FRAME_SIZE_176x144,
-  FRAME_SIZE_320x240,
-  FRAME_SIZE_352x288,
-  FRAME_SIZE_640x480,
-  FRAME_SIZE_960x540,
-  FRAME_SIZE_1280x720,
-  FRAME_SIZE_1440x1080,
-  FRAME_SIZE_1920x1080,
-  FRAME_SIZE_3840x2160
+/// Affect the quality of video recording and image capture:
+///
+/// If a preset is not available on the camera being used a preset of lower quality will be selected automatically.
+enum ResolutionPreset {
+  /// 352x288 on iOS, 240p (320x240) on Android
+  low,
+
+  /// 480p (640x480 on iOS, 720x480 on Android)
+  medium,
+
+  /// 720p (1280x720)
+  high,
+
+  /// 1080p (1920x1080)
+  veryHigh,
+
+  /// 2160p (3840x2160)
+  ultraHigh,
+
+  /// The highest resolution available.
+  max,
 }
 
 enum ScaleMode {
@@ -153,44 +164,15 @@ class _WOWZCameraViewState extends State<WOWZCameraView> with AutomaticKeepAlive
 
   _onPlatformViewCreated(int viewId) {
     if (_viewId != viewId || _channel == null) {
-      _viewId = viewId;
 
+      _viewId = viewId;
       _channel = MethodChannel("${_camera_view_channel}_$viewId");
       widget.controller?._setChannel(_channel);
 
       _channel.setMethodCallHandler((call) async {
         print('wowz: status: ${call.arguments}');
-        switch (call.method) {
-          case _broadcastStatus:
-            widget.broadcastStatusCallback(
-                wowzBroadcastStatusFromJson(call.arguments));
-            break;
-          case _broadcastError:
-            final status = wowzBroadcastStatusFromJson(call.arguments);
-            switch (status.state) {
-              case BroadcastState.IDLE:
-                status.state = BroadcastState.IDLE_ERROR;
-                break;
-              case BroadcastState.BROADCASTING:
-                status.state = BroadcastState.BROADCASTING_ERROR;
-                break;
-              case BroadcastState.READY:
-                status.state = BroadcastState.READY_ERROR;
-                break;
-              default:
-                status.state = BroadcastState.BROADCASTING_ERROR;
-                break;
-            }
-            widget.broadcastStatusCallback(status);
-            break;
-          case _wowzStatus:
-            widget.statusCallback(WOWZStatus(call.arguments));
-            break;
-          case _wowzError:
-            widget.statusCallback(WOWZStatus(call.arguments));
-            break;
-        }
       });
+
       // license key gocoder sdk
       _channel.invokeMethod(
           _apiLicenseKey,
@@ -201,85 +183,10 @@ class _WOWZCameraViewState extends State<WOWZCameraView> with AutomaticKeepAlive
       if (widget.controller.configIsWaiting) {
         widget.controller.resetConfig();
       }
+
     }
   }
 
   @override
   bool get wantKeepAlive => true;
-}
-
-@immutable
-class WOWZSize {
-  WOWZSize(this.width, this.height);
-
-  final int width;
-  final int height;
-}
-
-@immutable
-// ignore: must_be_immutable
-class WOWZStatus {
-  int mState = 0;
-
-  WOWZStatus(this.mState);
-
-  bool isIdle() {
-    return this.mState == 0;
-  }
-
-  bool isStarting() {
-    return this.mState == 1;
-  }
-
-  bool isReady() {
-    return this.mState == 2;
-  }
-
-  bool isRunning() {
-    return this.mState == 3;
-  }
-
-  bool isPaused() {
-    return this.mState == 5;
-  }
-
-  bool isStopping() {
-    return this.mState == 4;
-  }
-
-  bool isStopped() {
-    return this.mState == 6;
-  }
-
-  bool isComplete() {
-    return this.mState == 7;
-  }
-
-  bool isShutdown() {
-    return this.mState == 9;
-  }
-
-  bool isUnknown() {
-    return this.mState == 11;
-  }
-
-  bool isBuffering() {
-    return this.mState == 12;
-  }
-
-  bool isPlayerBuffering() {
-    return this.mState == 24;
-  }
-
-  bool isPlayerIdle() {
-    return this.mState == 20;
-  }
-
-  bool isPlayerStopping() {
-    return this.mState == 23;
-  }
-
-  bool isPlayerRunning() {
-    return this.mState == 21;
-  }
 }
