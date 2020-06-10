@@ -21,16 +21,13 @@ class WOWZCameraController extends ValueNotifier<CameraControllerValue> {
   //authentication
   String username;
   String password;
-
-  WOWZSize wowzSize;
-  WOWZMediaConfig wowzMediaConfig;
   ScaleMode scaleMode;
 
   int fps;
   int bps;
   int khz;
 
-  bool configIsWaiting = false;
+  bool lazyInitialization = false;
 
   _setChannel(MethodChannel channel) {
     _channel = channel;
@@ -40,7 +37,7 @@ class WOWZCameraController extends ValueNotifier<CameraControllerValue> {
 
   /// It will not execute immediately when the chanel has not been initialized,
   /// and it will wait until the channel is initialized and it will automatically execute the config.
-  setWOWZConfig(
+  initialization(
       {@required String hostAddress,
       @required int portNumber,
       @required String applicationName,
@@ -52,8 +49,6 @@ class WOWZCameraController extends ValueNotifier<CameraControllerValue> {
       int bps,
       int khz}) {
 
-    String url = "rtmp://$hostAddress:$portNumber/$applicationName/$streamName";
-
     if (_channel == null) {
       this.hostAddress = hostAddress;
       this.portNumber = portNumber;
@@ -61,17 +56,15 @@ class WOWZCameraController extends ValueNotifier<CameraControllerValue> {
       this.streamName = streamName;
       this.username = username;
       this.password = password;
-      this.wowzSize = wowzSize;
-      this.wowzMediaConfig = wowzMediaConfig;
       this.scaleMode = scaleMode;
       this.fps = fps;
       this.bps = bps;
       this.khz = khz;
-      this.configIsWaiting = true;
+      this.lazyInitialization = true;
       return;
     }
 
-    configIsWaiting = false;
+    lazyInitialization = false;
 
     // Set the connection properties for the target Wowza Streaming Engine server or Wowza Streaming Cloud live stream
     if (hostAddress != null && hostAddress.isNotEmpty) {
@@ -92,15 +85,6 @@ class WOWZCameraController extends ValueNotifier<CameraControllerValue> {
     }
     if (password != null) {
       _channel.invokeMethod(_password, password);
-    }
-    if (wowzSize != null) {
-      _channel.invokeMethod(_wowzSize, "${wowzSize.width}/${wowzSize.height}");
-    }
-    if (wowzMediaConfig != null) {
-      _channel.invokeMethod(_wowzMediaConfig, wowzMediaConfig.toString());
-    }
-    if (scaleMode != null) {
-      _channel.invokeMethod(_scaleMode, scaleMode.toString());
     }
     if (fps != null) {
       _channel.invokeListMethod(_fps, fps);
@@ -117,7 +101,7 @@ class WOWZCameraController extends ValueNotifier<CameraControllerValue> {
 
   /// Restore settings set in the [setWOWZConfig] method
   resetConfig(){
-    configIsWaiting = false;
+    lazyInitialization = false;
 
     // Set the connection properties for the target Wowza Streaming Engine server or Wowza Streaming Cloud live stream
     if (hostAddress != null && hostAddress.isNotEmpty) {
@@ -138,15 +122,6 @@ class WOWZCameraController extends ValueNotifier<CameraControllerValue> {
     }
     if (password != null) {
       _channel.invokeMethod(_password, password);
-    }
-    if (wowzSize != null) {
-      _channel.invokeMethod(_wowzSize, "${wowzSize.width}/${wowzSize.height}");
-    }
-    if (wowzMediaConfig != null) {
-      _channel.invokeMethod(_wowzMediaConfig, wowzMediaConfig.toString());
-    }
-    if (scaleMode != null) {
-      _channel.invokeMethod(_scaleMode, scaleMode.toString());
     }
     if (fps != null) {
       _channel.invokeListMethod(_fps, fps);

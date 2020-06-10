@@ -2,11 +2,6 @@ part of gocoder;
 
 const _isInitialized = "is_initialized";
 
-const _broadcastStatus = "broadcast_status";
-const _broadcastError = "broadcast_error";
-const _wowzStatus = "wowz_status";
-const _wowzError = "wowz_serror";
-
 const _startPreview = "start_preview";
 const _stopPreview = "stop_preview";
 const _pausePreview = "pause_preview";
@@ -44,9 +39,5 @@ const _streamName = "stream_name";
 
 const _username = "username";
 const _password = "password";
-
-const _wowzSize = "wowz_size";
-const _wowzMediaConfig = "wowz_media_config";
-const _scaleMode = "scale_mode";
 
 const _initGoCoder = "init_go_coder";

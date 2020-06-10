@@ -33,6 +33,8 @@ class WOWZBroadcastStatus {
       {"state": state.toString(), "message": message};
 }
 
+enum CameraLensDirection { front, back, external }
+
 /// Affect the quality of video recording and image capture:
 ///
 /// If a preset is not available on the camera being used a preset of lower quality will be selected automatically.
@@ -56,15 +58,38 @@ enum ResolutionPreset {
   max,
 }
 
-enum ScaleMode {
-  /// Scale the camera preview to fit within the screen area. Letterboxing may be applied to maintain the aspect ratio.
-  RESIZE_TO_ASPECT,
-
-  /// Scale the camera preview to fill the entire screen area. The preview may be cropped to maintain the aspect ratio.
-  FILL_VIEW
+/// Returns the resolution preset as a String.
+String serializeResolutionPreset(ResolutionPreset resolutionPreset) {
+  switch (resolutionPreset) {
+    case ResolutionPreset.max:
+      return 'max';
+    case ResolutionPreset.ultraHigh:
+      return 'ultraHigh';
+    case ResolutionPreset.veryHigh:
+      return 'veryHigh';
+    case ResolutionPreset.high:
+      return 'high';
+    case ResolutionPreset.medium:
+      return 'medium';
+    case ResolutionPreset.low:
+      return 'low';
+  }
+  throw ArgumentError('Unknown ResolutionPreset value');
 }
 
-typedef WOWZStatusCallback = Function(WOWZStatus);
+
+CameraLensDirection _parseCameraLensDirection(String string) {
+  switch (string) {
+    case 'front':
+      return CameraLensDirection.front;
+    case 'back':
+      return CameraLensDirection.back;
+    case 'external':
+      return CameraLensDirection.external;
+  }
+  throw ArgumentError('Unknown CameraLensDirection value');
+}
+
 typedef WOWZBroadcastStatusCallback = Function(WOWZBroadcastStatus);
 
 abstract class OnWOWZBroadcastStatusCallback {
@@ -78,7 +103,6 @@ class WOWZCameraView extends StatefulWidget {
       {@required this.controller,
       @required this.androidLicenseKey,
       @required this.iosLicenseKey,
-      this.statusCallback,
       this.broadcastStatusCallback});
 
   @override
@@ -86,7 +110,6 @@ class WOWZCameraView extends StatefulWidget {
 
   final WOWZCameraController controller;
 
-  final WOWZStatusCallback statusCallback;
   final WOWZBroadcastStatusCallback broadcastStatusCallback;
 
   final String androidLicenseKey;
@@ -180,7 +203,7 @@ class _WOWZCameraViewState extends State<WOWZCameraView> with AutomaticKeepAlive
               ? widget.androidLicenseKey
               : widget.iosLicenseKey);
 
-      if (widget.controller.configIsWaiting) {
+      if (widget.controller.lazyInitialization) {
         widget.controller.resetConfig();
       }
 

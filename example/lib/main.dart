@@ -20,7 +20,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) {
-      controller.setWOWZConfig(
+      controller.initialization(
           hostAddress: "xxx.xxx.xxx.xxx",
           portNumber: 1935,
           applicationName: "xxxxxx",
@@ -48,10 +48,6 @@ class _MyAppState extends State<MyApp> {
                   androidLicenseKey: "GOSK-xxxx-xxxx-xxxx-xxxx-xxxx",
                   iosLicenseKey: "GOSK-xxxx-xxxx-xxxx-xxxx-xxxx",
                   controller: controller,
-                  statusCallback: (status) {
-                    print(
-                        "status: ${status.mState} | ${status.isStarting()} | ${status.isReady()}");
-                  },
                   broadcastStatusCallback: (broadcastStatus) {
                     print(
                         "status: ${broadcastStatus.state.toString()} | ${broadcastStatus.message}");
